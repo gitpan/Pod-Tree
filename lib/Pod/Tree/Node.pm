@@ -5,13 +5,8 @@
 package Pod::Tree::Node;
 
 require 5.004;
-require Exporter;
 
 use strict;
-use vars qw($VERSION @ISA);
-
-$VERSION   = '1.00';
-@ISA       = qw(Exporter);
 
 
 sub root  # ctor
@@ -58,7 +53,7 @@ sub command  # ctor
     }
 
     defined $text or $text = '';   # -w strikes again
-     $command =~ s/^=//;
+    $command =~ s/^=//;
 
     my $node = { type    => 'command',
 		 raw	 => $paragraph,
@@ -87,7 +82,8 @@ sub letter  # ctor
     my($class, $token) = @_;
 
     my $node = { type   => 'letter',
-		 letter => substr($token, 0, 1) };
+		 letter => substr($token, 0, 1),
+		 width  => $token =~ tr/</</     };
 
     bless $node, $class
 }    
@@ -331,7 +327,7 @@ sub make_sequences
 {
     my $node          = shift;
     my $text          = $node->{'text'};
-    my @tokens        = split(/( (?:[A-Z]<) | > )/x, $text);
+    my @tokens        = split /( [A-Z]<<+\s+ | [A-Z]< | \s+>>+ | > )/x, $text;
     my $sequences     = _parse_text(\@tokens);
     $node->{children} = $sequences;
 }
@@ -340,31 +336,42 @@ sub make_sequences
 sub _parse_text
 {
     my $tokens = shift;
-    my(@stack, $depth);
+    my(@stack, @width);
 
-    for my $token (@$tokens)
+    while (@$tokens)
     {
+	my $token = shift @$tokens;
 	length $token or next;
 
 	$token =~ /^[A-Z]</ and do
 	{
+	    my $width = $token =~ tr/</</;
+	    push @width, $width;
 	    my $node = letter Pod::Tree::Node $token;
 	    push @stack, $node;
-	    $depth++;
 	    next;
 	};
 
-	$token eq '>' and $depth and do
+	@width and $token =~ />{$width[-1],}$/ and do
 	{
-	    my($letter, $interior) = _pop_sequence(\@stack);
+	    my $width = pop @width;
+	    my($letter, $interior) = _pop_sequence(\@stack, $width);
 	    my $node = sequence Pod::Tree::Node $letter, $interior;
 	    push @stack, $node;
-	    $depth--;
+	    $token =~ s/^\s*>{$width}//;
+	    my @tokens = split //, $token;
+	    unshift @$tokens, @tokens;
 	    next;
 	};
 
 	my $node = text Pod::Tree::Node $token;
 	push @stack, $node;
+    }
+
+    if (@width)
+    {
+	my @text = map { $_->get_deep_text } @stack;
+	warn "Missing '>' delimiter in\n@text\n\n";
     }
 
     \@stack
@@ -373,17 +380,19 @@ sub _parse_text
 
 sub _pop_sequence
 {
-    my $stack = shift;
+    my($stack, $width) = @_;
     my($node, @interior);
 
     while (@$stack)
     {
 	$node = pop @$stack;
-	is_letter $node and return ($node, \@interior);
+	is_letter $node and $node->{width} == $width and 
+	    return ($node, \@interior);
 	unshift @interior, $node;
     }
 
-    warn "Internal error in Pod::Tree::Node::_pop_sequence\n";
+    my @text = map { $_->get_deep_text } @interior;
+    warn "Mismatched sequence delimiters around\n@text\n\n";
 
     $node = letter Pod::Tree::Node  ' ';
     $node, \@interior;

@@ -16,5 +16,14 @@ Non-breaking&nbsp;space, <CODE>0</CODE>.</P>
 <B>&lt;, &gt;, /, |, A, &Agrave;</B>
 <I><B>&lt;, &gt;, /, |, A, &Agrave;</B></I></P>
 <P>&copy; &deg; &divide; &frac12; &micro; &middot; &not; &reg; &times;</P>
+<P><CODE>$a &lt;=&gt; $b</CODE>,
+<CODE>$a &lt;=&gt; $b</CODE></P>
+<P><CODE><B>$foo-&gt;bar</B></CODE>,
+<I> <CODE><B>$foo-&gt;bar</B></CODE> </I>,</P>
+<P>An <CODE><A HREF="page.html#section">page/section</A></CODE> markup.</P>
+<P><CODE>$a &lt;&lt; $b</CODE>,
+<B> <CODE>$a &gt;&gt; $b</CODE> </B>;</P>
+<P>see <A HREF="#(%3f%3epattern)"><CODE>(?&gt;pattern)</CODE></A>.</P>
+<P><CODE><B><I>Italic Bold Code</I></B></CODE></P>
 </BODY>
 </HTML>

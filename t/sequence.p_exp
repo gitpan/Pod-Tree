@@ -169,4 +169,98 @@ ROOT
          TEXT times
       }
    }
+   ORDINARY 
+   {
+      SEQUENCE C
+      {
+         TEXT $a <=> $b
+      }
+      TEXT ,
+           
+      SEQUENCE C
+      {
+         TEXT $a <=> $b
+      }
+   }
+   ORDINARY 
+   {
+      SEQUENCE C
+      {
+         SEQUENCE B
+         {
+            TEXT $foo->bar
+         }
+      }
+      TEXT ,
+           
+      SEQUENCE I
+      {
+         TEXT  
+         SEQUENCE C
+         {
+            SEQUENCE B
+            {
+               TEXT $foo->bar
+            }
+         }
+         TEXT  
+      }
+      TEXT ,
+   }
+   ORDINARY 
+   {
+      TEXT An 
+      SEQUENCE C
+      {
+         SEQUENCE L page / section
+         {
+            TEXT page/section
+         }
+      }
+      TEXT  markup.
+   }
+   ORDINARY 
+   {
+      SEQUENCE C
+      {
+         TEXT $a << $b
+      }
+      TEXT ,
+           
+      SEQUENCE B
+      {
+         TEXT  
+         SEQUENCE C
+         {
+            TEXT $a >> $b
+         }
+         TEXT  
+      }
+      TEXT ;
+   }
+   ORDINARY 
+   {
+      TEXT see 
+      SEQUENCE L  / (?>pattern)
+      {
+         SEQUENCE C
+         {
+            TEXT (?>pattern)
+         }
+      }
+      TEXT .
+   }
+   ORDINARY 
+   {
+      SEQUENCE C
+      {
+         SEQUENCE B
+         {
+            SEQUENCE I
+            {
+               TEXT Italic Bold Code
+            }
+         }
+      }
+   }
 }

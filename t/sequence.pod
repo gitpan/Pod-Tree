@@ -16,3 +16,17 @@ I<B<E<lt>, E<gt>, E<sol>, E<verbar>, E<65>, E<Agrave>>>
 
 E<copy> E<deg> E<divide> E<frac12> E<micro> E<middot> E<not> E<reg> E<times>
 
+C<< $a <=> $b >>,
+C<<< $a <=> $b >>>
+
+C<< B<<< $foo->bar >>> >>,
+I< C<< B<<< $foo->bar >>> >> >,
+
+An C<<<< L<page/section> >>>> markup.
+
+C<<< $a << $b >>>,
+B< C<<< $a >> $b >>> >;
+
+see L<C<< (?>pattern) >>>.
+
+C<B<I<<< Italic Bold Code >>>>>

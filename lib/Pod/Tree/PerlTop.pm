@@ -196,7 +196,7 @@ Pod::Tree::PerlTop - generate a top-level index for Perl PODs
 C<Pod::Tree::PerlTop> generates a top-level index for Perl PODs.
 
 It also translates F<perl.pod> to F<perl.html>
-The translator is specially hacked to insert links to the big verbatim
+The translator is specially hacked to insert links into the big verbatim
 paragraph that lists all the other Perl PODs.
 
 =head1 METHODS

@@ -60,6 +60,12 @@ sub _scan_dir
 {
     my($perl_pod, $dir) = @_;
 
+    $dir =~ m(/ext$) and do  # extensions are handled by Pod::Tree::PerlLib
+    {
+	$File::Find::prune = 1;
+	return;
+    };
+
     -d $dir or mkdir $dir, 0755 or 
 	die "Pod::Tree::PerlPod::_scan_dir: Can't mkdir $dir: $!\n";
 }
@@ -187,7 +193,7 @@ __END__
 
 =head1 NAME
 
-Pod::Tree::PerlPod - translate module PODs to HTML
+Pod::Tree::PerlPod - translate Perl PODs to HTML
 
 =head1 SYNOPSIS
 

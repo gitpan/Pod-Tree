@@ -138,7 +138,7 @@ sub add_index
 
     my %funcs;
     my $index = $perl_func->{index};
-    for my $func (keys %$index)
+    for my $func (sort keys %$index)
     {
 	my $file   = $index->{$func};
 	my $letter = substr($func, 0, 1);
@@ -191,8 +191,10 @@ sub translate
 	$perl_func->report2("func/$file");
 
 	my $tree  = new Pod::Tree;
-	$tree->load_string("=head1 $func");
-	$tree->push(@items);
+	   $tree->load_string("=head1 $func\n\n=over 4\n\n=back");
+	my $list = $tree->get_root->get_children->[1];
+	   $list->set_children(\@items);
+	   $list->_set_list_type;
 
 	$options->{title} = $func;
 	my $dest  = "$html_dir/$pod_dir/$func_dir/$file.html";

@@ -10,6 +10,7 @@ use Pod::Tree::PerlLib;
 use Pod::Tree::PerlMap;
 use Pod::Tree::PerlPod;
 use Pod::Tree::PerlTop;
+use Pod::Usage;
 
 
 my %Opts;
@@ -71,7 +72,13 @@ perl2html - generate Perl documentation in HTML
 
 =head1 SYNOPSIS
 
-B<perl2html> I<PerlDir> I<HTMLDir>
+B<perl2html> 
+[B<-->[B<no>]B<toc>] 
+[B<--hr> I<level>] 
+[B<--bgcolor> B<#>I<rrggbb>] 
+[B<--text> B<#>I<rrggbb>] 
+[B<--v> I<verbosity>]
+I<PerlDir> I<HTMLDir>
 
 =head1 DESCRIPTION
 
@@ -85,6 +92,8 @@ B<perl2html> searches C<@INC> for module PODs,
 and C<$ENV{PATH}> for program PODS.
 
 All the HTML pages are created world-readable.
+
+I<Perldir> and I<HTMLDir> must be absolute path names.
 
 =head1 OPTIONS
 
@@ -125,11 +134,39 @@ Verbosity level: 0, 1, 2, 3
 
 =head1 REQUIRES
 
-L<C<Getopt::Long>>
+L<C<Getopt::Long>>,
+L<C<Pod::Usage>>
+
 
 =head1 SEE ALSO
 
-L<C<pods2html>>, L<C<Pod::Tree::HTML>>
+L<C<pods2html>>, 
+L<C<Pod::Tree>>,
+L<C<Pod::Tree::HTML>>,
+L<C<Pod::Tree::Bin>>,
+L<C<Pod::Tree::Dist>>,
+L<C<Pod::Tree::Func>>,
+L<C<Pod::Tree::Lib>>,
+L<C<Pod::Tree::Map>>,
+L<C<Pod::Tree::Pod>>,
+L<C<Pod::Tree::Top>>
+
+=head1 NOTES
+
+B<perl2html> finds all modules under C<@INC>,
+and C<@INC> usually contains C<.> (the current working directory).
+To prevent B<perl2html> from finding modules in strange places,
+you may want to B<cd> to an empty directory before running it.
+
+=head1 BUGS
+
+=over 4
+
+=item *
+
+I<Perldir> and I<HTMLDir> must be absolute path names.
+
+=back
 
 =head1 AUTHOR
 

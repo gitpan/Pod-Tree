@@ -10,10 +10,9 @@ require Exporter;
 use strict;
 use IO::File;
 use Pod::Tree::Node;
-use vars qw($VERSION @ISA);
+use base qw(Exporter);
 
-$VERSION = '1.01';
-@ISA = qw(Exporter);
+$Pod::Tree::VERSION = '1.02';
 
 
 sub new
@@ -325,7 +324,7 @@ See L<C<Pod::Tree::Node>> for a description of the tree.
 Creates a new C<Pod::Tree> object.
 The syntax tree is initially empty.
 
-=item I<$tree>->C<load_file>(I<$file>, I<%options>)
+=item I<$ok> = I<$tree>->C<load_file>(I<$file>, I<%options>)
 
 Parses a POD and creates a syntax tree for it.
 I<$file> is the name of a file containing the POD.
@@ -352,12 +351,12 @@ See L</OPTIONS> for a description of I<%options>
 Parses a POD and creates a syntax tree for it.
 I<\@pod> is a reference to an array of strings.
 Each string is one paragraph of the POD.
-  
+
 See L</OPTIONS> for a description of I<%options>
 
 =item I<$loaded> = I<$tree>->C<loaded>
 
-Returns true iff one of the C<load_>* functions has been called on I<$tree>.
+Returns true iff one of the C<load_>* methods has been called on I<$tree>.
 
 =item I<$node> = I<$tree>->C<get_root>
 
@@ -374,7 +373,7 @@ Pushes I<@nodes> onto the end of the top-level list of nodes in I<$tree>.
 
 =item I<$node> = I<$tree>->C<pop>
 
-Pushes I<$node> off of the end of the top-level list of nodes in I<$tree>.
+Pops I<$node> off of the end of the top-level list of nodes in I<$tree>.
 
 =item I<$tree>->C<walk>(I<\&sub>)
 
@@ -383,7 +382,7 @@ Calls I<sub> once for each node in the tree.
 The current node is passed as the first argument to I<sub>.
 
 C<walk> descends to the children and siblings of I<$node> iff
-I<sub> returns true.
+I<sub()> returns true.
 
 =item I<$tree>->C<dump>
 
@@ -403,10 +402,8 @@ These options may be passed in the I<%options> hash to the C<load_>* methods.
 =item C<in_pod =E<gt> 1>
 
 Sets the initial value of C<in_pod>.
-C<in_pod> controls whether the parser is cutting:
-the parser is cutting iff C<in_pod> is false.
-When the parser is cutting,
-it ignores all text until the next =command paragraph.
+When C<in_pod> is false,
+the parser ignores all text until the next =command paragraph.
 
 The initial value of C<in_pod> 
 defaults to false for C<load_file()> and C<load_fh()> calls
@@ -474,7 +471,7 @@ However,
 it could be a problem for C<=begin>/C<=end> blocks,
 if they pass text to a formatter for which blank lines are significant.
 
-=head2 LE<lt>E<gt> markups
+=head2 LZ<><> markups
 
 In the documentation of the 
 
@@ -488,15 +485,16 @@ However, there is no way to decide from the syntax alone whether
 
     L<foo>
 
-is a link to the F<foo> man page or to the C<foo> section of this man page.
+is a link to the F<foo> man page or 
+a link to the C<foo> section of this man page.
 
-C<Pod::Tree> parses C<LE<lt>fooE<gt> as a link to a section if
+C<Pod::Tree> parses C<< LZ<><foo> >> as a link to a section if
 C<foo> looks like a section name (e.g. contains whitespace), 
 and as a link to a man page otherswise. 
 
 In practice, this tends to break links to sections.
 If you want your section links to work reliably, 
-write them as C<LE<lt>"foo"E<gt> or C<LE<lt>/fooE<gt>.
+write them as C<< LZ<><"foo"> >> or C<< LZ<></foo> >>.
 
 =head1 SEE ALSO
 

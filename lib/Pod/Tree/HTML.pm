@@ -5,17 +5,12 @@
 package Pod::Tree::HTML;
 
 require 5.004;
-require Exporter;
 
 use strict;
 use vars qw(&isa);
 use HTML::Stream;
 use IO::File;
 use Pod::Tree;
-use vars qw($VERSION @ISA);
-
-$VERSION   = '1.00';
-@ISA       = qw(Exporter);
 
 
 my $LinkFormat = [ sub { my($b,$p,$f)=@_; ""              },
@@ -733,11 +728,11 @@ is the URL given in the C<base> option.
 
 =item I<$page>
 
-is the man page named in the LE<li>E<gt> markup.
+is the man page named in the LE<lt>E<gt> markup.
 
 =item I<$section>
 
-is the man page section given in the LE<li>E<gt> markup.
+is the man page section given in the LE<lt>E<gt> markup.
 
 =back
 

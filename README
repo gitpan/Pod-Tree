@@ -1,6 +1,6 @@
 Pod::Tree - Tree-based POD parser
 
-VERSION 1.01
+VERSION 1.02
 
 DESCRIPTION
 
@@ -31,6 +31,7 @@ Exporter
 File::Find
 IO::File
 HTML::Stream
+Pod::Usage
 
 
 HOW TO BUILD AND INSTALL
@@ -46,6 +47,7 @@ Modules
 Executables
 
     Copy them to where ever you want them.
+    Fix the shebang if it isn't correct for your system.
 
 
 TODO

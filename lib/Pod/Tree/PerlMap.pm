@@ -91,7 +91,7 @@ Pod::Tree::PerlMap - map names to URLs
 
 =head1 DESCRIPTION
 
-C<Pod::Tree::PerlMap> maps LE<lt>E<gt> to URLs.
+C<Pod::Tree::PerlMap> maps LE<lt>E<gt> markups to URLs.
 
 The C<Pod::Tree::Perl*> translators make entries in the map.
 C<Pod::Tree::HTML> uses the map to translate links before it emits

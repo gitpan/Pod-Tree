@@ -16,7 +16,7 @@ sub new
 		    text      => '#000000');
 
     my @stop_base = qw(Configure
-		       configpm configure 
+		       configpm configure
 		       installhtml installman installperl
 		       mv-if-diff
 		       perlsh);
@@ -302,7 +302,7 @@ Perl PODs.
 =head1 LINKING
 
 C<Pod::Tree::PerlDist> indexes files by their name.
-To link to a file named L<README.win32>
+To link to a file named F<README.win32>
 write
 
     L<README.win32>

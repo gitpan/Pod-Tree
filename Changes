@@ -1,6 +1,23 @@
 Revision history for Perl extension Pod::Tree
 
-1.0   2000 Mar 11
+1.02   2000 May 19
+
+	Pod::Tree::Node
+	- added support for x<<>> style markups
+
+	Pod::Tree::PerlFunc
+	- added <dl></dl> tags to lists in perlfunc.pod sub-pages
+	- sort function names within alphebetical index paragraphs
+
+	Pod::Tree::PerlLib
+	- scan for .pod files under @INC
+	- added stop_file list
+
+	Pod::Tree::PerlPod
+	- don't convert PODs under /ext/
+
+
+1.01   2000 Mar 11
 
 	Pod::Tree
 	- added limit => n option

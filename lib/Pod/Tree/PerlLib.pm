@@ -18,11 +18,14 @@ sub new
     my($class, $perl_dir, $html_dir, $link_map, %options) = @_;
     my $options  = { %defaults, %options, link_map => $link_map };
 
-    my $perl_lib = { perl_dir => $perl_dir,
-		     html_dir => $html_dir,
-		     lib_dir  => 'lib',
-		     top_page => 'lib.html',
-		     options  => $options };
+    my %stop_file = map { $_ => 1 } qw(perldiag.pod); # see diagnostics.pm
+
+    my $perl_lib = { perl_dir  =>  $perl_dir,
+		     html_dir  =>  $html_dir,
+		     lib_dir   =>  'lib',
+		     top_page  =>  'lib.html',
+		     stop_file => \%stop_file,
+		     options   =>  $options };
 
     bless $perl_lib, $class
 }
@@ -31,7 +34,7 @@ sub new
 sub scan
 {
     my($perl_lib, @dirs) = @_;
-       $perl_lib->report1("scan");
+    $perl_lib->report1("scan");
 
     $perl_lib->_stop_dirs(@dirs);
 
@@ -92,7 +95,10 @@ sub _scan_file
 {
     my($perl_lib, $source) = @_;
 
-    $source =~ m( \.p[lm]$ )x or return;
+    $source =~ m(\. (?: pl | pm | pod ) $ )x or return;
+
+    my $file     = (split m(\/), $source)[-1];
+       $perl_lib->{stop_file}{$file} and return;
 
     my $module   = $source;
     my $find_dir = $perl_lib->{find_dir};
