@@ -30,6 +30,8 @@ $HTML_Dir =~ s( /$ )()x;
 
 $| = 1;	      
 umask 0022;
+-d $HTML_Dir or mkdir $HTML_Dir, 0777 or die "Can't mkdir $HTML_Dir: $!\n";
+
 
 my($Perl_Map);
 my($Perl_Bin, $Perl_Dist, $Perl_Func, $Perl_Lib, $Perl_Pod, $Perl_Top);

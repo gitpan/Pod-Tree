@@ -58,10 +58,10 @@ sub _resolve_source
     isa $source, 'Pod::Tree' and return $source;
 
     my $tree = new Pod::Tree;
-    not $ref		    and $tree->load_file     ($source);
-    isa $source, 'IO::File' and $tree->load_fh	     ($source);
-    $ref eq 'SCALAR'        and $tree->load_string   ($source);
-    $ref eq 'ARRAY'         and $tree->load_paragaphs($source);
+    not $ref		    and $tree->load_file     ( $source);
+    isa $source, 'IO::File' and $tree->load_fh	     ( $source);
+    $ref eq 'SCALAR'        and $tree->load_string   ($$source);
+    $ref eq 'ARRAY'         and $tree->load_paragaphs( $source);
 
     $tree->loaded or 
 	die "Pod::Tree::HTML::_resolve_source: Can't load POD from $source\n";
@@ -577,7 +577,7 @@ Pod::Tree::HTML - Generate HTML from a Pod::Tree
   $source =   new Pod::Tree;
   $source =  "file.pod";
   $source =   new IO::File;
-  $source =  $pod;
+  $source = \$pod;
   $source = \@pod;
     
   $dest   =   new HTML::Stream;

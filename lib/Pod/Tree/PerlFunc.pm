@@ -96,6 +96,7 @@ sub index
     my $page     = $perl_func->{page};
     my $options  = $perl_func->{options};
 
+       $perl_func->mkdir("$html_dir/$pod_dir/");
        $options->{link_map}->set_depth(1);
 
     my $dest = "$html_dir/$pod_dir/$page.html";
@@ -215,8 +216,15 @@ sub Shift_Items
     {
 	my $item = shift @$funcs;
 	push @items, $item;
-	my $siblings = $item->get_siblings;
-	@$siblings and last;
+
+	@$funcs or last;
+
+	my($func0) = Parse_Name($item);
+	my($func1) = Parse_Name($funcs->[0]);
+	$func0 eq $func1 or last;
+
+#	my $siblings = $item->get_siblings;
+#	@$siblings and last;
     }
 
     @items
@@ -303,7 +311,7 @@ The HTML pages are written to I<HTML_dir>C</pod/func/>.
 =head1 LINKING
 
 C<Pod::Tree::PerlFunc> indexes every C<=item> paragraph in 
-F<perlfunc.html>. To link to the C<abs> function, write
+F<perlfunc.html>. To link, for example, to the C<abs> function, write
 
     L<func/abs>
 

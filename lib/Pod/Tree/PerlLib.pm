@@ -1,5 +1,5 @@
 use strict;
-use 5.005;
+use 5.6.0;
 use HTML::Stream;
 use Pod::Tree;
 use Pod::Tree::HTML;
@@ -18,13 +18,10 @@ sub new
     my($class, $perl_dir, $html_dir, $link_map, %options) = @_;
     my $options  = { %defaults, %options, link_map => $link_map };
 
-    my %stop_file = map { $_ => 1 } qw(perldiag.pod); # see diagnostics.pm
-
     my $perl_lib = { perl_dir  =>  $perl_dir,
 		     html_dir  =>  $html_dir,
 		     lib_dir   =>  'lib',
 		     top_page  =>  'lib.html',
-		     stop_file => \%stop_file,
 		     options   =>  $options };
 
     bless $perl_lib, $class
@@ -36,12 +33,18 @@ sub scan
     my($perl_lib, @dirs) = @_;
     $perl_lib->report1("scan");
 
+    # Don't try to install PODs for modules on relative paths in @INC
+    # (Typically `.')
+    @dirs = grep { m(^/) } @dirs;
+
     $perl_lib->_stop_dirs(@dirs);
 
     for my $dir (@dirs)
     {
 	$perl_lib->{find_dir} = $dir;
-        File::Find::find(sub {$perl_lib->_scan}, $dir);  # Closures rock!
+        File::Find::find({wanted   => sub {$perl_lib->_scan}, # Closures rock!
+			  no_chdir => 1 },
+			 $dir); 
     }
 }
 
@@ -77,7 +80,7 @@ sub _scan_dir
 
     my $find_dir = $perl_lib->{find_dir};
 
-    if ($perl_lib->{stop_dir}{$find_dir}{$dir})
+    if ($perl_lib->{stop_dir}{$find_dir}{$dir} or $dir =~ /pod$/)
     {
 	$File::Find::prune = 1;
 	return;
@@ -98,8 +101,6 @@ sub _scan_file
     $source =~ m(\. (?: pl | pm | pod ) $ )x or return;
 
     my $file     = (split m(\/), $source)[-1];
-       $perl_lib->{stop_file}{$file} and return;
-
     my $module   = $source;
     my $find_dir = $perl_lib->{find_dir};
        $module   =~ s(^$find_dir/)();

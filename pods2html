@@ -28,7 +28,8 @@ $PodDir  =~ s( /$ )()x;
 $HTMLDir =~ s( /$ )()x;
 
 umask 0022;
-find(\&Translate, $PodDir);
+find({ wanted   => \&Translate,
+       no_chdir => 1          }, $PodDir);
 Index() if $Options{index};
 
 
@@ -51,16 +52,15 @@ sub Translate_Dir
 sub Translate_POD
 {
     m( \.(pm|pod)$ )x or return;
-    print "$File::Find::name\n";
-    
-    my $source = $_;
+    my $source = $File::Find::name;
+    print "$source\n";
 
-    my $dest = $File::Find::name;
+    my $dest = $source;
     $dest =~ s/^$PodDir/$HTMLDir/;
     $dest =~ s( \.\w+$ )(.html)x;
 
-    my $pod = $File::Find::name;
-    $pod =~ s(^$PodDir)();
+    my $pod = $source;
+    $pod =~ s(^$PodDir/)();
     $pod =~ s( \.\w+$ )()x;
     $Index{$pod} = 1;
 

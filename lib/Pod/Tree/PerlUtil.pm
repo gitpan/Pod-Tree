@@ -22,7 +22,7 @@ sub report1
     my $package = ref $translator;
     my $name = "${package}::$routine";
     my $pad = 60 - length $name;
-    print $name, ' ' x $pad, "\n";
+    print STDERR $name, ' ' x $pad, "\n";
 }
 
 
@@ -35,10 +35,10 @@ sub report2
     $verbosity==2 and do
     {
 	my $pad = 60 - length $page;
-	print $page, ' ' x $pad, "\r";
+	print STDERR $page, ' ' x $pad, "\r";
     };
 
-    $verbosity==3 and print "$page\n";
+    $verbosity==3 and print STDERR "$page\n";
 }
 
 1

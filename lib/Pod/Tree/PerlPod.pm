@@ -1,5 +1,5 @@
 use strict;
-use 5.005;
+use 5.6.0;
 use File::Find;
 use HTML::Stream;
 use IO::File;
@@ -38,7 +38,9 @@ sub scan
        $perl_pod->report1("scan");
     my $perl_dir = $perl_pod->{perl_dir};
 
-    File::Find::find(sub {$perl_pod->_scan}, $perl_dir); # Perl rocks!
+    File::Find::find({ wanted   => sub {$perl_pod->_scan}, # Perl rocks!
+		       no_chdir => 1 },
+		     $perl_dir); 
 }
 
 
@@ -79,21 +81,41 @@ sub _scan_file
 
     my $link     = $source;
     my $perl_dir = $perl_pod->{perl_dir};
-    $link =~ s(^$perl_dir\/)();
-    $link =~ s( \.\pod$ )()x;
+    $link =~ s(^$perl_dir/)();
+    $link =~ s( \.pod$ )()x;
     $perl_pod->report2($link);
 
-    my $name = (split m(\/), $link)[-1];
+    my $name = (split m(/), $link)[-1];
+    my $desc = _get_description($source);
 
     $dest   =~ s( \.\w+$ )(.html)x;
 
     my $pod = { name   => $name,   # perldata
+		desc   => $desc,   # Perl data types
 		link   => $link,   # pod/perldata
 		source => $source, # .../perl5.5.650/pod/perldata.pod
 		dest   => $dest }; # .../public_html/perl/pod/perldata.html
 
     $perl_pod->{pods}{$link} = $pod;
     $perl_pod->{options}{link_map}->add_page($name, $link);
+}
+
+
+sub _get_description
+{
+    my $source = shift;
+    my $tree   = new Pod::Tree;
+       $tree->load_file($source, limit => 2);
+    my $node1  = $tree->get_root->get_children->[1];
+       $node1 or return '';
+
+    my $text   = $node1->get_deep_text;
+    my($name, $description) = split m(\s+-\s+), $text;
+       $name   =~ s(^\s+)();
+       $name or return '';
+
+       $description =~ s(\s+)( )g;
+       $description
 }
 
 
@@ -147,7 +169,16 @@ sub _emit_entries
     my $pods = $perl_pod->{pods};
     for my $link (sort keys %$pods)
     {
-	$stream->A(HREF => "$link.html")->t($link)->_A->nl;
+	my $pad = $col_width - length $link;
+	$stream->A(HREF => "$link.html")->t($link)->_A;
+
+	$pad < 1 and do
+	{
+	    $stream->nl;
+	    $pad = $col_width;
+	};
+
+	$stream->t(' ' x $pad, $pods->{$link}{desc})->nl;
     }
 
     $stream->_PRE;

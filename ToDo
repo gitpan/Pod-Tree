@@ -1,10 +1,3 @@
-Fix pods2html to handle relative paths
-Fix perl2html to handle relative paths
-Consider using 
-- File::Find::no_chdir
-- File::Spec::abs2rel()
-- File::Spec::rel2abs()
-
 Report file name in error messages in Pod::Tree::Node
 
 add non-POD option to Pod::Tree (see Mail/jvromans)
@@ -13,3 +6,7 @@ write Pod::Tree::Source         (see Mail/jvromans)
 pods2html
 Is there some way to make --base default to HTMLDir?
 Is this the Right Thing?
+
+Move the get description code from Pod::Tree::PerlPod and 
+Pod::Tree::PerlLib down into Pod::Tree::PerlUtil.
+

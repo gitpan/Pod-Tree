@@ -55,7 +55,8 @@ sub scan_xsubpp
 {
     my $perl_bin = shift;
 
-    File::Find::find(sub { $perl_bin->_scan_xsubpp }, @INC);
+    my @inc = grep { m(^/) } @INC;  # Don't ask.
+    File::Find::find(sub { $perl_bin->_scan_xsubpp }, @inc);
 }
 
 sub _scan_xsubpp
@@ -79,6 +80,7 @@ sub scan_file
 
     my $tree  = new Pod::Tree;
        $tree->load_file($source, limit => 2);
+
     my $node1 = $tree->get_root->get_children->[1];
        $node1 or return;
 

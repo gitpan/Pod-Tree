@@ -1,5 +1,28 @@
 Revision history for Perl extension Pod::Tree
 
+1.03   2000 Oct 09
+
+	- Cleaned up $VERSION variables (we hope)
+
+	Pod::Tree::HTML
+	- fixed \$pod bug in new()
+
+	Pod::Tree::PerlBin
+	- fixed xsubpp bug
+
+	Pod::Tree::PerlFunc
+	- fixed to handle do() properly
+
+	Pod::Tree::PerlPod
+	- compress whitespace in description lines
+	
+	pods2html
+	- Fixed to handle relative paths
+
+	perl2html
+	- Fixed to handle relative paths
+
+
 1.02   2000 May 19
 
 	Pod::Tree::Node
