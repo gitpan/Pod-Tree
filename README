@@ -27,11 +27,9 @@ Executables
 
 PREREQUISITES
 Perl 5.6.0
-Exporter
-File::Find
-IO::File
 HTML::Stream
-Pod::Usage
+IO::File
+Pod::Escapes
 
 
 HOW TO BUILD AND INSTALL
@@ -42,6 +40,14 @@ Modules
     make
     make test
     make install
+
+
+You may see a message like
+
+    Warning: prerequisite HTML::Stream 1.49 not found.
+
+You can ignore this, provided that you actually have HTML::Stream 1.49
+or later installed.
 
 
 TODO
@@ -60,11 +66,12 @@ Jonas Liljegren		<jonas@jonas.rit.se>
 Johan Lindstrom		<johanl@bahnhof.se>
 Terry Luedtke           <terry_luedtke@nlm.nih.gov>
 Rob Napier		<rnapier@employees.org>
+Kate L Pugh             <kake@earth.li>
 Christopher Shalah	<trance@drizzle.com>
 Johan Vromans		<JVromans@Squirrel.nl >
 
 
 COPYRIGHT
-Copyright 1999-2002 by Steven McDougall. This module is free
+Copyright 1999-2003 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

@@ -1,5 +1,27 @@
 Revision history for Perl extension Pod::Tree
 
+1.10	2003 Jan
+	Pod::Tree
+	- documentation typos
+	- dropped the require 5.6.0; statement
+	
+	Pod::Tree::HTML
+	- added support for $link_map->url methods
+	- deprecated        $link_map->map methods
+	- exposed escape_2396 and assemble_url methods
+	- documentation
+
+	Pod::Tree::Node
+	- documentation typos
+
+	Pod::Tree::Pod
+	- dropped the require 5.6.0; statement
+
+	t/mapper.t
+	t/mapper.d
+	- created
+
+	
 1.09	2002 Jul
 	Makefile.PL
 	- traded in ABSTRACT for ABSTRACT_FROM

@@ -1,4 +1,4 @@
-# Copyright 1999-2001 by Steven McDougall.  This module is free
+# Copyright 1999-2003 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
@@ -12,17 +12,8 @@ use HTML::Stream;
 use IO::File;
 use Pod::Tree;
 
-$Pod::Tree::HTML::VERSION = '1.08';
+$Pod::Tree::HTML::VERSION = '1.10';
 
-
-my $LinkFormat = [ sub { my($b,$p,$f)=@_; ""              },
-		   sub { my($b,$p,$f)=@_;           "#$f" },
-                   sub { my($b,$p,$f)=@_;    "$p.html"    },
-                   sub { my($b,$p,$f)=@_;    "$p.html#$f" },
-                   sub { my($b,$p,$f)=@_; "$b/"           },
-                   sub { my($b,$p,$f)=@_;           "#$f" },
-                   sub { my($b,$p,$f)=@_; "$b/$p.html"    },
-                   sub { my($b,$p,$f)=@_; "$b/$p.html#$f" } ];
 
 sub new
 {
@@ -44,7 +35,6 @@ sub new
 		 root        => $tree->get_root,
 		 stream      => $stream,
 		 text_method => 'text',
-	         link_format => $LinkFormat,
 		 options     => $options,
 		 };
 
@@ -497,24 +487,34 @@ sub _emit_link
     $stream->_A;
 }
 
-sub bin { oct '0b' . join '', @_ }
-
 sub make_POD_URL
 {
     my($html, $target) = @_;
 
+    my $link_map = $html->{options}{link_map};
+
+    return $link_map->url($html, $target) if $link_map->can("url");
+
+    $html->make_mapped_URL($target)
+}
+
+
+sub make_mapped_URL
+{
+    my($html, $target) = @_;
+
+    my $link_map = $html->{options}{link_map};
     my $base     = $html->{options}{base} || '';
     my $page     = $target->get_page;
     my $section  = $target->get_section;
     my $depth    = $html->{options}{depth};
 
-    my $link_map = $html->{options}{link_map};
     ($base, $page, $section) = $link_map->map($base, $page, $section, $depth);
 
-    $base =~ s(/$)();
-    my $fragment = $html->_escape_text($section);
-    my $i        = bin map { length($_) ? 1 : 0 } ($base, $page, $fragment);
-    my $url      = $html->{link_format}[$i]($base, $page, $fragment);
+       $base     =~ s(/$)();
+       $page    .= '.html' if $page;
+    my $fragment = $html->escape_2396($section);
+    my $url      = $html->assemble_url($base, $page, $fragment);
 
     $url
 }
@@ -577,11 +577,32 @@ sub _make_anchor
     my $text = $node->get_deep_text;
        $text =~ s(   \s*\n\s*/  )( )xg;  # close line breaks
        $text =~ s( ^\s+ | \s+$  )()xg;   # clip leading and trailing WS
-       $html->_escape_text($text)
+       $html->escape_2396($text)
 }
 
  
-sub _escape_text
+sub bin { oct '0b' . join '', @_ }
+
+my @LinkFormat = ( sub { my($b,$p,$f)=@_; ""         },
+		   sub { my($b,$p,$f)=@_;      "#$f" },
+                   sub { my($b,$p,$f)=@_;    "$p"    },
+                   sub { my($b,$p,$f)=@_;    "$p#$f" },
+                   sub { my($b,$p,$f)=@_; "$b/"      },
+                   sub { my($b,$p,$f)=@_;      "#$f" },
+                   sub { my($b,$p,$f)=@_; "$b/$p"    },
+                   sub { my($b,$p,$f)=@_; "$b/$p#$f" } );
+
+sub assemble_url
+{
+    my($html, $base, $page, $fragment) = @_;
+
+    my $i    = bin map { length($_) ? 1 : 0 } ($base, $page, $fragment);
+    my $url  = $LinkFormat[$i]($base, $page, $fragment);
+
+    $url
+}
+
+sub escape_2396
 {
     my($html, $text) = @_;
     $text =~ s(([^\w\-.!~*'()]))(sprintf("%%%02x", ord($1)))eg;
@@ -597,14 +618,24 @@ sub new
     bless {}, $class
 }
 
-sub map
+sub url
 {
-    my($link_map, $base, $page, $section, $depth) = @_;
+    my($link_map, $html, $target) = @_;
 
-    $page =~ s(::)(/)g;
+    my $depth    = $html->{options}{depth};
+    my $base     = join '/', ('..') x $depth;
 
-    ('../' x $depth, $page, $section)
+    my $page     = $target->get_page;
+       $page     =~ s(::)(/)g;
+       $page    .= '.html' if $page;
+
+    my $section  = $target->get_section;
+    my $fragment = $html->escape_2396 ($section);
+
+    my $url      = $html->assemble_url($base, $page, $fragment);
+    $url
 }
+
 
 __END__
 
@@ -615,23 +646,26 @@ Pod::Tree::HTML - Generate HTML from a Pod::Tree
 =head1 SYNOPSIS
 
   use Pod::Tree::HTML;
-
-  $source =   new Pod::Tree %options;
-  $source =  "file.pod";
-  $source =   new IO::File;
-  $source = \$pod;
-  $source = \@pod;
+  
+  $source   =   new Pod::Tree %options;
+  $source   =  "file.pod";
+  $source   =   new IO::File;
+  $source   = \$pod;
+  $source   = \@pod;
     
-  $dest   =   new HTML::Stream;
-  $dest   =   new IO::File;
-  $dest   =  "file.html";
-
-  $html   =   new Pod:::Tree::HTML $source, $dest, %options;
-
-  $html->set_options(%options);
-  @values = $html->get_options(@keys);
-
-  $html->translate;
+  $dest     =   new HTML::Stream;
+  $dest     =   new IO::File;
+  $dest     =  "file.html";
+  
+  $html     =   new Pod:::Tree::HTML $source, $dest, %options;
+  
+              $html->set_options(%options);
+  @values   = $html->get_options(@keys);
+  
+              $html->translate;
+  
+  $fragment = $html->escape_2396 ($section);
+  $url      = $html->assemble_url($base, $page, $fragment);
 
 
 =head1 DESCRIPTION
@@ -747,6 +781,34 @@ This method should only be called once.
 
 =back
 
+=head2 Utility methods
+
+These methods are provided for implementors who write their own link
+mapper objects.
+
+=over 4
+
+=item I<$fragment> = I<$html>->C<escape_2396>(I<$section>)
+
+Escapes I<$section> according to RFC 2396. For example, the section
+
+    some section
+
+is returned as
+
+    some%20section
+
+=item I<$url> = I<$html>->C<assemble_url>(I<$base>, I<$page>, I<$fragment>)
+
+Assembles I<$base>, I<$page>, and I<$fragment> into a URL, of the form
+
+    $base/$page#$fragment
+
+Attempts to construct a valid URL, even if some of I<$base>, I<$page>,
+and I<$fragment> are empty.
+
+=back
+
 
 =head1 OPTIONS
 
@@ -771,6 +833,7 @@ Specifies a Cascanding Style Sheet for the generated HTML page.
 =item C<depth> => I<$depth>
 
 Specifies the depth of the generated HTML page in a directory tree.
+See L</LINK MAPPING> for details.
 
 
 =item C<hr> => I<$level>
@@ -788,43 +851,8 @@ Default is level 1.
 
 =item C<link_map> => I<$link_map>
 
-Sets the link mapping object.
-Before emitting an C<< L<> >> markup in HTML, 
-C<translate> calls
-
-(I<$base>, I<$page>, I<$section>) = I<$link_map>-E<gt>C<map>(I<$base>, I<$page>, I<$section>, I<$depth>);
-
-Where
-
-=over 4
-
-=item I<$base>
-
-is the URL given in the C<base> option.
-
-=item I<$page>
-
-is the man page named in the LE<lt>E<gt> markup.
-
-=item I<$section>
-
-is the man page section given in the LE<lt>E<gt> markup.
-
-=item (I<$depth>
-
-is the value of the C<depth> option.
-
-=back
-
-The C<map> method may perform arbitrary mappings on its arguments.
-
-The default link_map translates C<::> sequences in I<$page> to C</>.
-If the C<base> option is given, 
-it creates links relative to that URL;
-if the C<depth> option is given, 
-it creates links relative to the root of the HTML directory tree.
-If neither the C<base> nor C<depth> options are provided,
-the default link_map may not generate correct links.
+Sets the link mapper. 
+See L</LINK MAPPING> for details.
 
 
 =item C<text> => I<#rrggbb>
@@ -856,10 +884,10 @@ Default is to include the TOC.
 
 =head1 LINKS and TARGETS
 
-C<Pod::Tree::HTML> automatically generates HTML name anchors for
+C<Pod::Tree::HTML> automatically generates HTML destination anchors for
 all =head1 and =head2 command paragraphs,
 and for text items in =over lists.
-The text of the paragraph becomes the C<name> entity in the anchor.
+The text of the paragraph becomes the C<name> attribute of the anchor.
 Markups are ignored and the text is escaped according to RFC 2396.
 
 For example, the paragraph
@@ -871,7 +899,7 @@ is translated to
 	<h1><a name="Foo%20Bar"><code>Foo</code> Bar</a></h1>
 
 To link to a heading, 
-simply give the text of the heading in a C<< L<> >> markup.
+simply give the text of the heading in an C<< LZ<><> >> markup.
 The text must match exactly; 
 markups may vary.
 Either of these would link to the heading shown above
@@ -879,14 +907,143 @@ Either of these would link to the heading shown above
 	L</C<Foo> Bar>
 	L</Foo Bar>
 
-To generate HTML anchors in other places, 
-use the index (C<< X<> >>) markup
+To generate destination anchors in other places, 
+use the index (C<< XZ<><> >>) markup
 
 	We can link to X<this text>.
 
 and link to it as usual
 
 	L</this text> uses the index markup.
+
+
+=head1 LINK MAPPING
+
+The POD specification provides the C<< LZ<><> >> markup to link from
+one document to another. HTML provides anchors (C<< <a href=""></a> >>) 
+for the same purpose. Obviously, a POD2HTML translator should
+convert the first to the second.
+
+In general, this is a hard problem.
+In particular, the POD format is not powerful enough to support the kind
+of hyper-linking that people want in a complex documentation system.
+
+Rather than try to be all things to all people,
+C<Pod::Tree::HTML> uses a I<link mapper> object to translate 
+the target of a POD link to a URL.
+The default link mapper does a simple translation, described below.
+If you don't like the default translation,
+you can provide your own link mapper
+with the L<< C<link_map> => I<$link_map> >> option.
+
+
+=head2 Default
+
+The default link mapper obtains the I<page> and I<section> from the target.
+It translates C<::> sequences in the I<page> to C</>,
+and returns a URL of the form [C<../>...][I<page>C<.html>][C<#>I<section>]
+
+If the L<< C<depth> => I<$depth> >> option is given,
+a corresponding number of C<../> sequences are prepended to I<page>.
+
+This is a relative URL, 
+so it will be interpreted relative to the L<< C<base> => I<$base> >> option,
+if any.
+
+
+=head2 Custom
+
+To use your own link mapper,
+create a link mapper object and provide it to C<Pod::Tree::HTML>
+with the C<link_map> option
+
+    sub MyMapper::new { bless {}, shift }
+    
+    sub MyMapper::url
+    {
+        my($mapper, $html, $target) = @_;
+        ...
+	return $url;
+    }
+    
+    $mapper = new MyMapper;
+    $html   = new Pod::Tree::HTML link_map => $mapper;
+
+Your object should implement one method
+
+=over 4
+
+=item I<$url> = I<$mapper>->C<url>(I<$html>, I<$target>)
+
+When I<$html>->C<translate>() encounters an C<< LZ<><> >> markup, 
+it calls I<$mapper>->C<url>. 
+I<$html> is the C<Pod::Tree::HTML> object itself.
+I<$target> is a C<Pod::Tree::Node> object representing the 
+the target of the link. 
+See L<Pod::Tree::Node/target nodes> for information on interpreting I<$target>.
+
+The C<url> method must return a string, 
+which will be emitted as the value of the C<href> attribute of an HTML 
+anchor: C<< <a href=" >>I<$url>C<< "> >>...C<< </a> >>
+
+C<Pod:Tree:HTML> provides the C<escape_2396> and C<assemble_url>
+methods for convenience in implementing link mappers.
+
+=back
+
+If the link mapper does not provide a C<url> method,
+C<Pod::Tree::HTML> will call C<map> 
+
+=over 4
+
+=item (I<$base>, I<$page>, I<$section>) = I<$mapper>-E<gt>C<map>(I<$base>, I<$page>, I<$section>, I<$depth>);
+
+Where
+
+=over 4
+
+=item I<$base>
+
+is the URL given in the C<base> option.
+
+=item I<$page>
+
+is the man page named in the LE<lt>E<gt> markup.
+
+=item I<$section>
+
+is the man page section given in the LE<lt>E<gt> markup.
+
+=item I<$depth>
+
+is the value of the C<depth> option.
+
+=back
+
+The C<map> method may perform arbitrary mappings on its arguments.
+C<Pod::Tree::HTML> takes the returned values and constructs a URL 
+of the form [I<$base>/][I<$page>C<.html>][C<#>I<$fragment>]
+
+=back
+
+The C<map> method is 
+
+=over 4
+
+=item *
+
+deprecated
+
+=item *
+
+less flexible than the C<url> method
+
+=item *
+
+supported for backwards compatability with 
+older versions of C<Pod::Tree::HTML>
+
+=back
 
 
 =head1 DIAGNOSTICS
@@ -921,7 +1078,6 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright 1999-2002 by Steven McDougall. This module is free
+Copyright 1999-2003 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
-

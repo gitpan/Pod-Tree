@@ -4,8 +4,6 @@
 
 package Pod::Tree::Pod;
 
-require 5.6.0;
-
 use strict;
 use IO::File;
 use Pod::Tree;
@@ -286,6 +284,8 @@ sub _emit_verbatim
     $file->print($text);
 }
 
+1
+
 __END__
 
 =head1 NAME
@@ -390,7 +390,6 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright 2000-2001 by Steven McDougall. This module is free
+Copyright 2000-2003 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
-

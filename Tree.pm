@@ -44,7 +44,6 @@ sub get_paragraph
 
 package Pod::Tree;
 
-require 5.6.0;
 require Exporter;
 
 use strict;
@@ -52,7 +51,7 @@ use IO::File;
 use Pod::Tree::Node;
 use base qw(Exporter);
 
-$Pod::Tree::VERSION = '1.09';
+$Pod::Tree::VERSION = '1.10';
 
 
 sub new
@@ -452,7 +451,7 @@ See L<Pod::Tree::Node> for a description of the syntax tree.
 
 =item I<$tree>->C<set_root>(I<$node>)
 
-Sets to the root of the syntax tree to I<$node>.
+Sets the root of the syntax tree to I<$node>.
 
 
 =item I<$tree>->C<push>(I<@nodes>)
@@ -619,6 +618,10 @@ Rob Napier <rnapier@employees.org>
 
 =item *
 
+Kate L Pugh <kake@earth.li>
+
+=item *
+
 Christopher Shalah <trance@drizzle.com>
 
 =item *
@@ -635,6 +638,6 @@ Steven McDougall <swmcd@world.std.com>
 
 =head1 COPYRIGHT
 
-Copyright 1999-2002 by Steven McDougall. This module is free
+Copyright 1999-2003 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

@@ -11,7 +11,6 @@ use Pod::Tree::PerlLib;
 use Pod::Tree::PerlMap;
 use Pod::Tree::PerlPod;
 use Pod::Tree::PerlTop;
-use Pod::Usage;
 
 
 my %Opts;
@@ -137,9 +136,8 @@ Verbosity level: 0, 1, 2, 3
 
 =head1 REQUIRES
 
-Perl 5.6.0
+Perl 5
 L<C<Getopt::Long>>,
-L<C<Pod::Usage>>
 
 
 =head1 SEE ALSO

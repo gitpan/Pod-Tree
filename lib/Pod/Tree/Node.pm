@@ -10,7 +10,7 @@ use strict;
 use Pod::Escapes ();
 
 
-$Pod::Tree::Node::VERSION = '1.08';
+$Pod::Tree::Node::VERSION = '1.10';
 
 
 sub root  # ctor
@@ -957,6 +957,11 @@ Pod::Tree::Node - nodes in a Pod::Tree
   $filename = $node->get_filename;
 
 
+=head1 REQUIRES
+
+Pod::Escapes
+
+
 =head1 DESCRIPTION
 
 C<Pod::Tree::Node> objects are nodes in a tree that represents a POD.
@@ -1152,7 +1157,7 @@ these markups are expanded by C<Pod::Tree> when the tree is built.
 
 =head2 target nodes
 
-If a sequence node represents a link (an C<LZ<><>> markup),
+If a sequence node represents a link (an C<< LZ<><> >> markup),
 then
 
 	is_link $node
@@ -1169,7 +1174,7 @@ The C<POD> domain represents the
 	L<page/section>
 
 markups that are described in L<perlpod>. 
-The C<HTTP> domain represents C<LZ<><>> markups that contain a URL, e.g.
+The C<HTTP> domain represents C<< LZ<><> >> markups that contain a URL, e.g.
 
 	L<http://foo.bar.com/page.html#fragment>
 
@@ -1317,7 +1322,7 @@ They aren't necessary to walk trees.
 
 =item I<$link> = C<Pod::Tree::Node>->C<link>(I<$node>, I<$page>, I<$section>)
 
-Creates a new sequence node representing an LZ<><> markup.
+Creates a new sequence node representing an C<< LZ<><> >> markup.
 I<$node> becomes the sole child of the new node.
 The target of the node is constructed from I<$page> and I<$section>.
 
@@ -1585,7 +1590,7 @@ F<skeleton> is a skeleton application that walks a POD tree.
 
 =item *
 
-There is no provision in L<perlpod> for C<LZ<><>> markups to contain
+There is no provision in L<perlpod> for C<< LZ<><> >> markups to contain
 URLs, but due to popular demand, this is now supported in
 C<Pod::Tree::Node>.
 
@@ -1604,7 +1609,6 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright 1999-2001 by Steven McDougall. This module is free
+Copyright 1999-2003 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
-
