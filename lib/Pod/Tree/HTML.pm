@@ -12,6 +12,8 @@ use HTML::Stream;
 use IO::File;
 use Pod::Tree;
 
+$Pod::Tree::HTML::VERSION = '1.04';
+
 
 my $LinkFormat = [ sub { my($b,$p,$f)=@_; ""              },
 		   sub { my($b,$p,$f)=@_;           "#$f" },

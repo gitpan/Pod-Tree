@@ -1,6 +1,12 @@
 Revision history for Perl extension Pod::Tree
 
-1.03   2000 Oct 09
+1.04	2000 Oct 11
+	
+	Pod::Tree::HTML
+	- Added $VERSION to quiet CPAN.pm
+
+
+1.03	2000 Oct 09
 
 	- Cleaned up $VERSION variables (we hope)
 
@@ -23,7 +29,7 @@ Revision history for Perl extension Pod::Tree
 	- Fixed to handle relative paths
 
 
-1.02   2000 May 19
+1.02	2000 May 19
 
 	Pod::Tree::Node
 	- added support for x<<>> style markups
@@ -40,7 +46,7 @@ Revision history for Perl extension Pod::Tree
 	- don't convert PODs under /ext/
 
 
-1.01   2000 Mar 11
+1.01	2000 Mar 11
 
 	Pod::Tree
 	- added limit => n option
@@ -87,5 +93,6 @@ Revision history for Perl extension Pod::Tree
 	- ToDo
 
 
-1.00  1999 Jun 23
+1.00	1999 Jun 23
 	- original version; created by h2xs 1.18
+

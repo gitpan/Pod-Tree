@@ -12,7 +12,7 @@ use IO::File;
 use Pod::Tree::Node;
 use base qw(Exporter);
 
-$Pod::Tree::VERSION = '1.03';
+$Pod::Tree::VERSION = '1.04';
 
 
 sub new

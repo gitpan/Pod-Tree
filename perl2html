@@ -136,6 +136,7 @@ Verbosity level: 0, 1, 2, 3
 
 =head1 REQUIRES
 
+Perl 5.6.0
 L<C<Getopt::Long>>,
 L<C<Pod::Usage>>
 
@@ -145,30 +146,14 @@ L<C<Pod::Usage>>
 L<C<pods2html>>, 
 L<C<Pod::Tree>>,
 L<C<Pod::Tree::HTML>>,
-L<C<Pod::Tree::Bin>>,
-L<C<Pod::Tree::Dist>>,
-L<C<Pod::Tree::Func>>,
-L<C<Pod::Tree::Lib>>,
-L<C<Pod::Tree::Map>>,
-L<C<Pod::Tree::Pod>>,
-L<C<Pod::Tree::Top>>
+L<C<Pod::Tree::PerlBin>>,
+L<C<Pod::Tree::PerlDist>>,
+L<C<Pod::Tree::PerlFunc>>,
+L<C<Pod::Tree::PerlLib>>,
+L<C<Pod::Tree::PerlMap>>,
+L<C<Pod::Tree::PerlPod>>,
+L<C<Pod::Tree::PerlTop>>
 
-=head1 NOTES
-
-B<perl2html> finds all modules under C<@INC>,
-and C<@INC> usually contains C<.> (the current working directory).
-To prevent B<perl2html> from finding modules in strange places,
-you may want to B<cd> to an empty directory before running it.
-
-=head1 BUGS
-
-=over 4
-
-=item *
-
-I<Perldir> and I<HTMLDir> must be absolute path names.
-
-=back
 
 =head1 AUTHOR
 
