@@ -8,7 +8,7 @@ require 5.004;
 
 use strict;
 
-$Pod::Tree::Node::VERSION = '1.05';
+$Pod::Tree::Node::VERSION = '1.06';
 
 
 sub root  # ctor
@@ -419,7 +419,7 @@ sub _parse_link
 {
     my $node     = shift;
     my $children = $node->{children};
-
+    
     my($text_kids, $target_kids) = SplitBar($children);
 
     $node->{ children } = $text_kids;
@@ -445,8 +445,8 @@ sub SplitBar
 	my($text, $link) = split m(\|), $child->{'text'};
 	$link and do
 	{
-	    push @text, text Pod::Tree::Node $text;
-	    push @link, text Pod::Tree::Node $link, @$children;
+	    push @text,  text Pod::Tree::Node $text if $text;
+	    push @link, (text Pod::Tree::Node $link), @$children;
 	    return (\@text, \@link)
 	};
 
@@ -924,7 +924,7 @@ to recover the text of the paragraph.
 =head2 ordinary nodes
 
 An ordinary node represents the text of an ordinary paragraph.
-The text is parsed in to a list of text and sequence nodes;
+The text is parsed into a list of text and sequence nodes;
 these nodes are the children of the ordinary node.
 Call
 

@@ -24,6 +24,7 @@ Non-breaking&nbsp;space, <CODE>0</CODE>.</P>
 <P><CODE>$a &lt;&lt; $b</CODE>,
 <B> <CODE>$a &gt;&gt; $b</CODE> </B>;</P>
 <P>see <A HREF="#(%3f%3epattern)"><CODE>(?&gt;pattern)</CODE></A>.</P>
+<P>see <A HREF="#(%3f%3epattern)">No backtracking</A>.</P>
 <P><CODE><B><I>Italic Bold Code</I></B></CODE></P>
 </BODY>
 </HTML>

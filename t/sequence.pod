@@ -29,4 +29,6 @@ B< C<<< $a >> $b >>> >;
 
 see L<C<< (?>pattern) >>>.
 
+see L<No backtracking|/(?E<gt>pattern)>.
+
 C<B<I<<< Italic Bold Code >>>>>

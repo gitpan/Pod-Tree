@@ -1,6 +1,6 @@
 Pod::Tree - Tree-based POD parser
 
-VERSION 1.05
+VERSION 1.06
 
 DESCRIPTION
 
@@ -11,6 +11,8 @@ Modules
     the POD. 
 
     Pod::Tree::HTML walks a Pod::Tree and translates it to HTML.
+
+    Pod::Tree::Pod walks a Pod::Tree and translates it back to POD.
 
     Pod::Tree::Perl* translate the PODs in the Perl distribution to HTML.
 
@@ -57,6 +59,7 @@ Send suggestions, bugs, etc. to swmcd@world.std.com
 
 ACKNOWLEDGMENTS
 
+Sean M. Burke		<sburke@spinn.net>
 Jost Krieger		<Jost.Krieger@ruhr-uni-bochum.de>
 Johan Lindstrom		<johanl@bahnhof.se>
 Christopher Shalah	<trance@drizzle.com>

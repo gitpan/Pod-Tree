@@ -1,5 +1,13 @@
 Revision history for Perl extension Pod::Tree
 
+1.06	2000 Oct 17
+
+	Added Pod::Tree::Pod
+
+	Pod::Tree::Node
+	- fixed SpitBar()
+
+
 1.05	2000 Oct 12
 
 	Pod::Tree::Node

@@ -252,6 +252,15 @@ ROOT
    }
    ORDINARY 
    {
+      TEXT see 
+      SEQUENCE L  / (?>pattern)
+      {
+         TEXT No backtracking
+      }
+      TEXT .
+   }
+   ORDINARY 
+   {
       SEQUENCE C
       {
          SEQUENCE B
