@@ -1,5 +1,43 @@
 Revision history for Perl extension Pod::Tree
 
+1.09	2002 Jul
+	Makefile.PL
+	- traded in ABSTRACT for ABSTRACT_FROM
+
+	Pod::Tree::Node
+	- recoded _unescape_text to use Pod::Escapes
+	- expand the HTTP domain to include e.g. mailto:
+
+	Pod::Tree::Pod
+	- changed _escape to handle non-ASCII chars
+
+	Pod::Tree::PerlUtils
+	- Handle module names that contain dashes
+
+	Pod::Tree::HTML
+	- Handle PODs that have "name--description" with multiple dashes
+	- Change default bgcolor to white
+	- added css => $url option
+
+	perl2html
+	- traded in hard-coded /:/ for /$Config{path_sep}/
+
+	pod2html
+	- added -css URL option
+
+	pods2html
+	- added -css URL option
+	- fixed recursion check on Win32
+
+	t/pod2html.d
+	t/pod2html.t
+	- created
+
+	t/pods2html.t
+	- enable some tests on Win32
+	- wrote RDiff() to ignore CVS directories
+
+
 1.08	2001 May 30
 	t/pods2html.t
 	- skip test on Win32

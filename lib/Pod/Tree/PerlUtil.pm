@@ -54,7 +54,7 @@ sub get_name
        $node1 or return ();
 
     my $text     = $node1->get_deep_text;
-    my($name, $description) = split m(\s+-\s+), $text, 2;
+    my($name, $description) = split m(\s+-+\s+), $text, 2;
        $name     =~ s(^\s+)();
        $name or return ();
 

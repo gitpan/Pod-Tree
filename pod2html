@@ -1,5 +1,6 @@
 #!/usr/local/bin/perl
 
+use 5.6.0;
 use strict;
 use Getopt::Long;
 use Pod::Tree::HTML;
@@ -8,8 +9,11 @@ my %Options;
 $Options{toc} = 1;
 my $ok = GetOptions(\%Options, 
 		    "base:s",
-		    "toc!", "hr:i", 
-		    "bgcolor:s", "text:s");
+		    "css:s",
+		    "toc!", 
+		    "hr:i", 
+		    "bgcolor:s", 
+		    "text:s");
 $ok or die "Bad command line options\n";
 
 umask 0022;
@@ -29,6 +33,7 @@ pod2html - translate a POD to HTML
 
 C<pod2html> 
 [C<--base> I<url>]
+[C<--css> I<url>]
 [C<-->[C<no>]C<toc>] [C<--hr> I<level>] 
 [C<--bgcolor> I<#rrggbb>] [C<--text> I<#rrggbb>]
 F<source> F<dest>
@@ -50,6 +55,11 @@ F<dest> is created world-readable.
 Translate C<LE<lt>E<gt>> sequences into HTML
 links relative to I<url>.
 
+=item C<--css> I<url>
+
+Specifies a Cascanding Style Sheet for the generated HTML page.
+
+
 =item C<-->[C<no>]C<toc>
 
 Includes or omits the table of contents.
@@ -70,7 +80,7 @@ Default is level 1.
 =item C<--bgcolor> I<#rrggbb>
 
 Set the background color to I<#rrggbb>.
-Default is off-white.
+Default is white.
 
 =item C<--text> I<#rrggbb>
 
@@ -93,5 +103,5 @@ Steven McDougall, <swmcd@world.std.com>
 
 =head1 COPYRIGHT
 
-Copyright 1999 by Steven McDougall.  This program is free software;
+Copyright 1999-2002 by Steven McDougall.  This program is free software;
 you can redistribute it and/or modify it under the same terms as Perl.

@@ -32,7 +32,7 @@ sub new
     my $tree   = _resolve_source($source);
     my $stream = _resolve_dest  ($dest  ); 
 
-    my $options = { bgcolor     => '#fffff8',
+    my $options = { bgcolor     => '#ffffff',
 		    depth       => 0,
 		    hr          => 1,
 		    link_map    => Pod::Tree::HTML::LinkMap->new(),
@@ -121,11 +121,15 @@ sub translate
     my $text 	= $html->{options}{text};
     my $title   = $html->_make_title;
     my $base    = $html->{options}{base};
+    my $css     = $html->{options}{css};
 
     $stream->HTML->HEAD;
     
     defined $title and $stream->TITLE->text($title)->_TITLE;
     defined $base  and $stream->BASE(href => $base);
+    defined $css   and $stream->LINK(href => $css, 
+				     type => "text/css", 
+				     rel  => "stylesheet");
 
     $stream->_HEAD
 	   ->BODY(BGCOLOR => $bgcolor, TEXT => $text);
@@ -159,7 +163,7 @@ sub _make_title
     $node1 or return undef;
 
     my $text = $node1->get_deep_text;
-    ($title) = split m(-), $text;
+    ($title) = split m(\s+-), $text;
 
     $title  or return undef;      # to quiet -w
     $title =~ s(\s+$)();
@@ -756,7 +760,12 @@ Specifies a base URL for relative HTML links.
 =item C<bgcolor> => I<#rrggbb>
 
 Set the background color to I<#rrggbb>.
-Default is C<#fffff8>, which is an off-white.
+Default is white.
+
+
+=item C<css> => I<$url>
+
+Specifies a Cascanding Style Sheet for the generated HTML page.
 
 
 =item C<depth> => I<$depth>
@@ -912,7 +921,7 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright 1999-2001 by Steven McDougall. This module is free
+Copyright 1999-2002 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 

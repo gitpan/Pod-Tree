@@ -1,5 +1,6 @@
 #!/usr/local/bin/perl
 
+use 5.6.0;
 use strict;
 use File::Find;
 use File::Path;
@@ -14,6 +15,7 @@ my %Options = (bgcolor => '#fffff8',
 	       toc     => 1 );
 
 my $ok = GetOptions(\%Options, "base:s", 
+		               "css:s",
 		               "index:s", 
 		               "bgcolor:s", 
 		               "text:s",
@@ -30,7 +32,7 @@ mkpath($HTMLDir);
 $PodDir  =~ s( /$ )()x;
 $HTMLDir =~ s( /$ )()x;
 
-my $HTML_inode;
+my $HTML_inode = (stat $HTMLDir)[1];
 
 umask 0022;
 find({ wanted   => \&Translate,
@@ -47,9 +49,10 @@ sub Translate
 
 sub Translate_Dir
 {
-    my $dir = $File::Find::name;
+    my $dir   = $File::Find::name;
+    my $inode = (stat $dir)[1];     # always 0 on Win32
 
-    if ( (stat $dir)[1] == (stat $HTMLDir)[1] )
+    if ($inode and $inode == $HTML_inode)
     {
 	$File::Find::prune = 1;
 	return;
@@ -154,6 +157,7 @@ pods2html - translate a tree of PODs to HTML
 
 C<pods2html> 
 [C<--base> I<url>]
+[C<--css> I<url>]
 [C<--index> I<title>]
 [C<-->[C<no>]C<toc>] [C<--hr> I<level>] 
 [C<--bgcolor> I<#rrggbb>] [C<--text> I<#rrggbb>]
@@ -177,6 +181,11 @@ It makes the HTML files world-readable.
 =item C<--base> I<url>
 
 Specifies a base URL for HTML links.
+
+
+=item C<--css> I<url>
+
+Specifies a Cascanding Style Sheet for the generated HTML pages.
 
 
 =item C<--index> I<title>
@@ -207,7 +216,7 @@ Default is level 1.
 =item C<--bgcolor> I<#rrggbb>
 
 Set the background color to I<#rrggbb>.
-Default is off-white.
+Default is white.
 
 
 =item C<--text> I<#rrggbb>
@@ -224,6 +233,13 @@ L<C<Pod::Tree::HTML>>,
 L<C<HTML::Stream>>
 
 
+=head1 BUGS
+
+The recursion check doesn't work on Win32.
+This means that the program will enter an infinite recursion
+if I<HTMLdir> is a subdirectory of I<PODdir>.
+
+
 =head1 SEE ALSO
 
 L<C<pod2html>>, 
@@ -237,6 +253,5 @@ Steven McDougall, <swmcd@world.std.com>
 
 =head1 COPYRIGHT
 
-Copyright 1999-2001 by Steven McDougall.  This program is free software;
+Copyright 1999-2002 by Steven McDougall.  This program is free software;
 you can redistribute it and/or modify it under the same terms as Perl.
-

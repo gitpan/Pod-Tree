@@ -102,20 +102,11 @@ ROOT
          TEXT index
       }
       TEXT 
-           <, >, /, |, A, 
-      SEQUENCE E
-      {
-         TEXT Agrave
-      }
-      TEXT 
+           <, >, /, |, A, \xc0
 
       SEQUENCE B
       {
-         TEXT <, >, /, |, A, 
-         SEQUENCE E
-         {
-            TEXT Agrave
-         }
+         TEXT <, >, /, |, A, \xc0
       }
       TEXT 
 
@@ -123,11 +114,7 @@ ROOT
       {
          SEQUENCE B
          {
-            TEXT <, >, /, |, A, 
-            SEQUENCE E
-            {
-               TEXT Agrave
-            }
+            TEXT <, >, /, |, A, \xc0
          }
       }
       TEXT 
@@ -136,51 +123,7 @@ ROOT
    }
    ORDINARY 
    {
-      SEQUENCE E
-      {
-         TEXT copy
-      }
-      TEXT  
-      SEQUENCE E
-      {
-         TEXT deg
-      }
-      TEXT  
-      SEQUENCE E
-      {
-         TEXT divide
-      }
-      TEXT  
-      SEQUENCE E
-      {
-         TEXT frac12
-      }
-      TEXT  
-      SEQUENCE E
-      {
-         TEXT micro
-      }
-      TEXT  
-      SEQUENCE E
-      {
-         TEXT middot
-      }
-      TEXT  
-      SEQUENCE E
-      {
-         TEXT not
-      }
-      TEXT  
-      SEQUENCE E
-      {
-         TEXT reg
-      }
-      TEXT  
-      SEQUENCE E
-      {
-         TEXT times
-      }
-      TEXT 
+      TEXT \xa9 \xb0 \xf7 \xbd \xb5 \xb7 \xac \xae \xd7
 
 
    }

@@ -7,6 +7,8 @@ package Pod::Tree::Node;
 require 5.004;
 
 use strict;
+use Pod::Escapes ();
+
 
 $Pod::Tree::Node::VERSION = '1.08';
 
@@ -134,13 +136,13 @@ sub target  # ctor
     $node->unescape;
     my $text = $node->get_deep_text;
 
-    if ($text =~ m(://))       # a URL
+    if ($text =~ m(^[A-Za-z]+:(?!:))) # a URL
     {
 	$node->{page   } = $text;
 	$node->{section} = '';
 	$node->{domain } = 'HTTP';
     }
-    else                       # a POD link
+    else                              # a POD link
     {
 	my($page, $section) = SplitTarget($text);
 	$node->{page   } = $page;
@@ -164,11 +166,7 @@ sub SplitTarget
     }
     else                          # all other cases
     {
-	($page, $section) = split m(/), $text, 2;   
-
-	# to quiet -w
-	defined $page    or $page    = '';
-	defined $section or $section = '';
+	($page, $section) = (split(m(/), $text, 2), '', '');
 
 	$page    =~ s/\s*\(\d\)$//;    # ls (1) -> ls
 	$section =~ s( ^" | "$ )()xg;  # lose the quotes
@@ -549,23 +547,14 @@ sub _unescape_sequence
 }
 
 
-my %EscapeMap = ('lt'    => '<',
-		 'gt'    => '>',
-		  sol    => '/',
-		  verbar => '|');
-
 sub _unescape_text
 {
-    my $node  = shift;
+    my $node = shift;
+    my $text = $node->{'text'};
 
-    my $text   = $node->{'text'};
-    my $escape = $EscapeMap{$text};
-    $escape and return $escape;
-
-    $text =~ /^\d+$/ and return chr($text);
-
-    ''
+    defined $text ? Pod::Escapes::e2char($text) : "E<UNDEF?!>";
 }
+
 
 
 sub consolidate
@@ -796,6 +785,8 @@ sub _dump_text
 {
     my $node = shift;
     my $text = $node->get_text;
+
+    $text =~ s/([\x80-\xff])/sprintf("\\x%02x", ord($1))/eg;
 
     my $indent = ' ' x ($Indent+5);
     $text =~ s( (?<=\n) (?=.) )($indent)xg;

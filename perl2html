@@ -2,6 +2,7 @@
 
 use 5.005;
 use strict;
+use Config;
 use Getopt::Long;
 use Pod::Tree::PerlBin;
 use Pod::Tree::PerlDist;
@@ -46,7 +47,7 @@ $Perl_Pod  = new Pod::Tree::PerlPod  $Perl_Dir, $HTML_Dir, $Perl_Map, %Opts;
 $Perl_Top  = new Pod::Tree::PerlTop  $Perl_Dir, $HTML_Dir, $Perl_Map, %Opts;
 
 $Perl_Pod ->scan;
-$Perl_Bin ->scan(split /:/, $ENV{PATH});
+$Perl_Bin ->scan(split /$Config{path_sep}/, $ENV{PATH});
 $Perl_Dist->scan;
 $Perl_Func->scan;
 $Perl_Lib ->scan(@INC);

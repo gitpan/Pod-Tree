@@ -10,11 +10,11 @@ B<bold>, I<italic>, zero, B<bold, I<bold italic>, bold> normal.
 S<Non-breaking space>, C<0>.
 
 C<code>, B<bold C<code>>, F<file>, X<index>
-<, >, /, |, A, E<Agrave>
-B<<, E<gt>, /, |, A, E<Agrave>>
-I<B<<, E<gt>, /, |, A, E<Agrave>>>
+<, >, /, |, A, E<192>
+B<<, E<gt>, /, |, A, E<192>>
+I<B<<, E<gt>, /, |, A, E<192>>>
 
-E<copy> E<deg> E<divide> E<frac12> E<micro> E<middot> E<not> E<reg> E<times>
+E<169> E<176> E<247> E<189> E<181> E<183> E<172> E<174> E<215>
 
 C<$a <=E<gt> $b>
 

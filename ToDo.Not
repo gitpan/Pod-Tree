@@ -4,7 +4,7 @@ Things I don't want to do
 1. Make pods2html not create an html file unless the .pm/.pod file
 actually contains POD paragraphs.
 
-Currently, Pod::HTML correctly translates a POD with no content to an
+Currently, Pod::Tree::HTML correctly translates a POD with no content to an
 HTML file with no content. I'd rather not special-case the code to
 suppress the HTML file. 
 
@@ -16,7 +16,7 @@ post-processing pass (or write the PODs :)
 .html files.
 
 
-3. Make pods2html to emit a frameset with the index in one frame and
+3. Make pods2html emit a frameset with the index in one frame and
 the POD in the other.
 
 This is an easy hack on pods2html for anyone who wants it.
@@ -34,4 +34,15 @@ want an authoritative statement of
 
 
 5. Make pods2html --base default to HTMLDir
-I think fixing relative links makes this a non-issue.
+I think this a non-issue now that relative links are fixed. 
+
+
+6. Remove the ($] >= 5.005 ? key from Makefile.PL
+I had a complaint that this syntax breaks on Cygwin, but I can no
+longer contact the person who reported it to confirm the problem.
+
+
+7. Generate an index and TOC in the sytle of Marek::Pod::Html
+This is
+- beyond the scope of POD
+- beyond the scope of Pod::Tree

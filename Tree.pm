@@ -1,4 +1,4 @@
-# Copyright 1999-2001 by Steven McDougall.  This module is free
+# Copyright 1999-2002 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
@@ -52,7 +52,7 @@ use IO::File;
 use Pod::Tree::Node;
 use base qw(Exporter);
 
-$Pod::Tree::VERSION = '1.08';
+$Pod::Tree::VERSION = '1.09';
 
 
 sub new
@@ -500,7 +500,6 @@ These options may be passed in the I<%options> hash to the C<load_>* methods.
 
 Sets the initial value of C<in_pod>.
 When C<in_pod> is false,
-all 
 the parser ignores all text until the next =command paragraph.
 
 The initial value of C<in_pod> 
@@ -584,11 +583,19 @@ perl(1), L<C<Pod::Tree::Node>>, L<C<Pod::Tree::HTML>>
 
 =item *
 
+<crazyinsomniac@yahoo.com>
+
+=item *
+
 Sean M. Burke <sburke@spinn.net>
 
 =item *
 
 Rudi Farkas <rudif@bluemail.ch>
+
+=item *
+
+Paul Gibeault <pagibeault@micron.com>
 
 =item *
 
@@ -601,6 +608,10 @@ Jonas Liljegren <jonas@jonas.rit.se>
 =item *
 
 Johan Lindstrom <johanl@bahnhof.se>
+
+=item *
+
+Terry Luedtke <terry_luedtke@nlm.nih.gov>
 
 =item *
 
@@ -624,6 +635,6 @@ Steven McDougall <swmcd@world.std.com>
 
 =head1 COPYRIGHT
 
-Copyright 1999-2001 by Steven McDougall. This module is free
+Copyright 1999-2002 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

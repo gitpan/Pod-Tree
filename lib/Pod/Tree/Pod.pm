@@ -271,6 +271,8 @@ sub _escape
 	$text =~ s(/)(E<sol>)g;
     }
 
+    $text =~ s/([\x80-\xff])/sprintf("E<%d>", ord($1))/eg;
+
     $text
 }
 
