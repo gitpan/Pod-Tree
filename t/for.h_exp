@@ -3,13 +3,15 @@
 </HEAD>
 <BODY BGCOLOR="#fffff8" TEXT="#000000">
 <H1><A NAME="HEAD">HEAD</A></H1>
-Line 1<br> &lt;<em>Line 2</em>&gt;
+
+<P>Line 1<br> &lt;<em>Line 2</em>&gt;</P>
+<P><a href="http://world.std.com/~swmcd/steven/index.html">Steven</a></P>
 <PRE>	VERBATIM
 	VERBATIM
 	VERBATIM</PRE>
-Fee, Fie, Foe, Fum
-Foo, Bar, Baz, Buz
-<P>
-<H2><A NAME="Really20a20commmand2E">Really a commmand.</A></H2>
+
+<P>Fee, Fie, Foe, Fum
+Foo, Bar, Baz, Buz</P><H2><A NAME="Really%20a%20commmand.">Really a commmand.</A></H2>
+
 </BODY>
 </HTML>

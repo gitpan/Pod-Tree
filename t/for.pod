@@ -4,6 +4,8 @@
 
 =for html Line 1<br> &lt;<em>Line 2</em>&gt;
 
+=for html <a href="http://world.std.com/~swmcd/steven/index.html">Steven</a>
+
 	VERBATIM
 	VERBATIM
 	VERBATIM

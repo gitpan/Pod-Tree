@@ -58,6 +58,33 @@ ROOT
       TEXT A  
       SEQUENCE L  / sec
       {
+         TEXT  sec 
+      }
+      TEXT       section in this manual page
+   }
+   ORDINARY 
+   {
+      TEXT A  
+      SEQUENCE L  / sec tion
+      {
+         TEXT sec tion 
+      }
+      TEXT    section in this manual page
+   }
+   ORDINARY 
+   {
+      TEXT A  
+      SEQUENCE L mod::ule.foo / 
+      {
+         TEXT mod::ule.foo
+      }
+      TEXT   link to a module POD
+   }
+   ORDINARY 
+   {
+      TEXT A  
+      SEQUENCE L  / sec
+      {
          TEXT /"sec"
       }
       TEXT      section in this manual page (the quotes are optional).
@@ -106,6 +133,33 @@ ROOT
          TEXT not
       }
       TEXT  optional).
+   }
+   ORDINARY 
+   {
+      TEXT A  
+      SEQUENCE L  / sec
+      {
+         TEXT text
+      }
+      TEXT       section in this manual page 
+   }
+   ORDINARY 
+   {
+      TEXT A  
+      SEQUENCE L  / sec tion
+      {
+         TEXT text
+      }
+      TEXT    section in this manual page 
+   }
+   ORDINARY 
+   {
+      TEXT A  
+      SEQUENCE L bar-mod::ule / 
+      {
+         TEXT text
+      }
+      TEXT    link to a module POD
    }
    ORDINARY 
    {
@@ -174,7 +228,16 @@ ROOT
    {
       SEQUENCE L  / target w/spaces
       {
-         TEXT "target w/spaces"
+         TEXT " target w/spaces "
+      }
+   }
+   ORDINARY 
+   {
+      SEQUENCE L  / target with line breaks
+      {
+         TEXT "target with
+              line 
+              breaks"
       }
    }
    ORDINARY 

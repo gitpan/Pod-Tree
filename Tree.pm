@@ -1,4 +1,4 @@
-# Copyright 1999 by Steven McDougall.  This module is free
+# Copyright 1999-2000 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
@@ -12,7 +12,7 @@ use IO::File;
 use Pod::Tree::Node;
 use vars qw($VERSION @ISA);
 
-$VERSION = '1.00';
+$VERSION = '1.01';
 @ISA = qw(Exporter);
 
 
@@ -42,14 +42,16 @@ sub load_fh
 
     $tree->{in_pod} = 0;
     $tree->_load_options(%options);
+    my $limit = $tree->{limit};
 
     local $/ = '';
-    
+
     my $paragraph;
     while ($paragraph = $fh->getline)
     {
 	chomp $paragraph;
 	$tree->_add_paragraph($paragraph);
+	$limit and $limit==@{$tree->{paragraphs}} and last;
     }
 
     $tree->_parse;
@@ -71,10 +73,12 @@ sub load_paragraphs
 
     $tree->{in_pod} = 1;
     $tree->_load_options(%options);
+    my $limit = $tree->{limit};
 
     for my $paragraph (@$paragraphs)
     {
 	$tree->_add_paragraph($paragraph);
+	$limit and $limit==@{$tree->{paragraphs}} and last;
     }
 
     $tree->_parse;
@@ -213,10 +217,66 @@ sub dump
 
 sub get_root { shift->{root} }
 
+sub set_root
+{
+    my($tree, $root) = @_;
+    $tree->{root} = $root;
+}
+
+
+sub push
+{
+    my($tree, @nodes) = @_;
+    my $root     = $tree->{root};
+    my $children = $root->get_children;
+    push @$children, @nodes;
+}
+	
+
+sub pop
+{
+    my $tree     = shift;
+    my $root     = $tree->get_root;
+    my $children = $root->get_children;
+    pop @$children
+}
+
+
+sub walk
+{
+    my($tree, $sub) = @_;
+
+    my $root = $tree->get_root;
+    _walk($root, $sub);
+}
+
+
+sub _walk
+{
+    my $sub = $_[1];
+
+    my $descend = &$sub($_[0]); # :TRICKY: sub can modify node
+    $descend or return;
+
+    my $node = $_[0];
+
+    my $children = $node->get_children;
+    for my $child (@$children)
+    {
+	_walk($child, $sub);
+    }
+
+    my $siblings = $node->get_siblings;
+    for my $sibling (@$siblings)
+    {
+	_walk($sibling, $sub);
+    }
+}
+
+
 1
 
 __END__
-
 
 =head1 NAME
 
@@ -231,11 +291,16 @@ Pod::Tree - Create a static syntax tree for a POD
   $tree->load_fh        ( $fh  , %options);
   $tree->load_string    ( $pod , %options);
   $tree->load_paragraphs(\@pod , %options);
-
-  $loaded = $tree->loaded;  
-  $node   = $tree->get_root;
   
-  print $tree->dump;
+  $loaded = $tree->loaded;  
+  
+  $node   = $tree->get_root;
+            $tree->set_root  ($node);
+  $node =   $tree->pop;
+            $tree->push(@nodes);
+  
+            $tree->walk(\&sub);
+  print     $tree->dump;
 
 =head1 REQUIRES
 
@@ -299,6 +364,27 @@ Returns true iff one of the C<load_>* functions has been called on I<$tree>.
 Returns the root node of the syntax tree.
 See L<Pod::Tree::Node> for a description of the syntax tree.
 
+=item I<$tree>->C<set_root>(I<$node>)
+
+Sets to the root of the syntax tree to I<$node>.
+
+=item I<$tree>->C<push>(I<@nodes>)
+
+Pushes I<@nodes> onto the end of the top-level list of nodes in I<$tree>.
+
+=item I<$node> = I<$tree>->C<pop>
+
+Pushes I<$node> off of the end of the top-level list of nodes in I<$tree>.
+
+=item I<$tree>->C<walk>(I<\&sub>)
+
+Walks the syntax tree, depth first.
+Calls I<sub> once for each node in the tree.
+The current node is passed as the first argument to I<sub>.
+
+C<walk> descends to the children and siblings of I<$node> iff
+I<sub> returns true.
+
 =item I<$tree>->C<dump>
 
 Pretty prints the syntax tree.
@@ -328,6 +414,10 @@ and true for  C<load_string()> and C<load_paragraphs()> calls.
 This is usually what you want, unless you want consistency.
 If this isn't what you want,
 pass different initial values in the I<%options> hash.
+
+=item C<limit> => I<n>
+
+Only parse the first I<n> paragraphs in the POD.
 
 =back
 
@@ -384,6 +474,30 @@ However,
 it could be a problem for C<=begin>/C<=end> blocks,
 if they pass text to a formatter for which blank lines are significant.
 
+=head2 LE<lt>E<gt> markups
+
+In the documentation of the 
+
+    L<"sec">	section in this manual page
+
+markup, L<C<perlpod>> has always claimed
+
+		(the quotes are optional)
+
+However, there is no way to decide from the syntax alone whether
+
+    L<foo>
+
+is a link to the F<foo> man page or to the C<foo> section of this man page.
+
+C<Pod::Tree> parses C<LE<lt>fooE<gt> as a link to a section if
+C<foo> looks like a section name (e.g. contains whitespace), 
+and as a link to a man page otherswise. 
+
+In practice, this tends to break links to sections.
+If you want your section links to work reliably, 
+write them as C<LE<lt>"foo"E<gt> or C<LE<lt>/fooE<gt>.
+
 =head1 SEE ALSO
 
 perl(1), L<C<Pod::Tree::Node>>, L<C<Pod::Tree::HTML>>
@@ -394,6 +508,6 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright 1999 by Steven McDougall. This module is free
+Copyright 1999-2000 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

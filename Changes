@@ -1,5 +1,51 @@
-Revision history for Perl extension Pod::Tree.
+Revision history for Perl extension Pod::Tree
 
-0.01  Wed Jun 23 22:34:29 1999
+1.0   2000 Mar 11
+
+	Pod::Tree
+	- added limit => n option
+	- added get_root(), set_root()
+	- added push(), pop()
+	- added walk()
+
+	Pod::Tree::Node
+	- allow text items to begin with * or number
+	- parse L<sec tion> as "sec tion" in this man page
+	- close line breaks in L<> markups
+
+	Pod::Tree::HTML
+	- emit </p> and </li> tags
+	- suppress <p></p> markups from a single ordinary list item
+	- changed _escape_text() to conform to  RFC 2369
+	- added linkMap => \&linkMap option
+	- added link() constructor
+	- close line breaks in <a name=""> markups
+	- emit anchors for <DT> items in <DL> lists
+	- accept =for HTML or =for html
+	- emit <p></p> around =for HTLM paragraphs
+
+	Makefile.PL
+	- add DISTNAME key
+
+	pod2html
+	- fixed the shebang
+
+	pods2html
+	- fixed the shebang
+	- added --index option
+	
+	Added
+	- Pod::Tree::PerlBin
+	- Pod::Tree::PerlDist
+	- Pod::Tree::PerlFunc
+	- Pod::Tree::PerlLib
+	- Pod::Tree::PerlMap
+	- Pod::Tree::PerlPod
+	- Pod::Tree::PerlTop
+	- Pod::Tree::PerlUtil
+	- perl2html
+	- ToDo
+
+
+1.00  1999 Jun 23
 	- original version; created by h2xs 1.18
-

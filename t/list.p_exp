@@ -10,7 +10,174 @@ ROOT
    }
    COMMAND head2 
    {
-      TEXT Simple
+      TEXT Bullet
+   }
+   LIST BULLET
+   {
+      ITEM BULLET
+      {
+         TEXT *
+      }
+      [
+         ORDINARY 
+         {
+            TEXT foo
+         }
+      ]
+      ITEM BULLET
+      {
+         TEXT *
+      }
+      [
+         ORDINARY 
+         {
+            TEXT bar
+         }
+      ]
+      ITEM BULLET
+      {
+         TEXT *
+      }
+      [
+         ORDINARY 
+         {
+            TEXT baz
+         }
+      ]
+   }
+   COMMAND head2 
+   {
+      TEXT Number
+   }
+   LIST NUMBER
+   {
+      ITEM NUMBER
+      {
+         TEXT 1
+      }
+      [
+         ORDINARY 
+         {
+            TEXT foo
+         }
+      ]
+      ITEM NUMBER
+      {
+         TEXT 2
+      }
+      [
+         ORDINARY 
+         {
+            TEXT bar
+         }
+      ]
+      ITEM NUMBER
+      {
+         TEXT 3
+      }
+      [
+         ORDINARY 
+         {
+            TEXT baz
+         }
+      ]
+   }
+   COMMAND head2 
+   {
+      TEXT Text
+   }
+   LIST TEXT
+   {
+      ITEM TEXT
+      {
+         TEXT do
+      }
+      [
+         ORDINARY 
+         {
+            TEXT a deer, a female deer
+         }
+      ]
+      ITEM TEXT
+      {
+         TEXT ray
+      }
+      [
+         ORDINARY 
+         {
+            TEXT a drop of goden sun
+         }
+      ]
+      ITEM TEXT
+      {
+         TEXT me
+      }
+      [
+         ORDINARY 
+         {
+            TEXT me, a name, I call myself
+         }
+      ]
+      ITEM TEXT
+      {
+         TEXT fa
+      }
+      [
+         ORDINARY 
+         {
+            TEXT a long, long way to run
+         }
+      ]
+   }
+   LIST TEXT
+   {
+      ITEM TEXT
+      {
+         TEXT * do
+      }
+      [
+         ORDINARY 
+         {
+            TEXT a deer, a female deer
+         }
+      ]
+      ITEM TEXT
+      {
+         TEXT * ray
+      }
+      [
+         ORDINARY 
+         {
+            TEXT a drop of goden sun
+         }
+      ]
+   }
+   LIST TEXT
+   {
+      ITEM TEXT
+      {
+         TEXT 3 me
+      }
+      [
+         ORDINARY 
+         {
+            TEXT me, a name, I call myself
+         }
+      ]
+      ITEM TEXT
+      {
+         TEXT 4 fa
+      }
+      [
+         ORDINARY 
+         {
+            TEXT a long, long way to run
+         }
+      ]
+   }
+   COMMAND head2 
+   {
+      TEXT Siblings
    }
    LIST BULLET
    {
@@ -57,38 +224,9 @@ ROOT
          }
       ]
    }
-   LIST NUMBER
+   COMMAND head2 
    {
-      ITEM NUMBER
-      {
-         TEXT 1
-      }
-      [
-         ORDINARY 
-         {
-            TEXT Number 1
-         }
-      ]
-      ITEM NUMBER
-      {
-         TEXT 2
-      }
-      [
-         ORDINARY 
-         {
-            TEXT Number 2
-         }
-      ]
-      ITEM NUMBER
-      {
-         TEXT 3
-      }
-      [
-         ORDINARY 
-         {
-            TEXT Number 3
-         }
-      ]
+      TEXT Markups
    }
    LIST TEXT
    {

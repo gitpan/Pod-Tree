@@ -1,6 +1,6 @@
 Pod::Tree - Tree-based POD parser
 
-VERSION 1.00 
+VERSION 1.01
 
 DESCRIPTION
 
@@ -12,18 +12,25 @@ Modules
 
     Pod::Tree::HTML walks a Pod::Tree and translates it to HTML.
 
+    Pod::Tree::Perl* translate the Perl PODs to HTML.
+
 Executables
 
-    pod2html translates a POD file into an HTML file.
+    pod2html translates a POD file to an HTML file.
 
     pods2html walks a directory tree, 
     translates all the PODs that it finds into HTML files,
     and puts the HTML files into a parallel directory tree.
 
+    perl2html translates the Perl PODs to HTML
+
 
 PREREQUISITES
-Perl5.004
+Perl5.005
 Exporter
+File::Find
+IO::File
+HTML::Stream
 
 
 HOW TO BUILD AND INSTALL
@@ -42,11 +49,17 @@ Executables
 
 
 TODO
-Nothing planned.  
+See the ToDo file.
 Send suggestions, bugs, etc. to swmcd@world.std.com
 
 
+ACKNOWLEDGEMENTS
+
+Christopher Shalah	<trance@drizzle.com>
+Johan Vromans		<JVromans@Squirrel.nl> 
+
+
 COPYRIGHT
-Copyright 1999 by Steven McDougall. This module is free
+Copyright 1999-2000 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

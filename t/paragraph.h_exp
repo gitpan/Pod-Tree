@@ -4,14 +4,13 @@
 </HEAD>
 <BODY BGCOLOR="#fffff8" TEXT="#000000">
 <H1><A NAME="HEAD1">HEAD1</A></H1>
-Head 1 text
-<P>
-<H2><A NAME="HEAD2">HEAD<I>2</I></A></H2>
-Head2 <B>text</B>
-<P>
 
+<P>Head 1 text</P><H2><A NAME="HEAD2">HEAD<I>2</I></A></H2>
+
+<P>Head2 <B>text</B></P>
 <PRE>    +------------------------------+
     | This is a verbatim paragraph |
     +------------------------------+</PRE>
+
 </BODY>
 </HTML>

@@ -2,7 +2,89 @@
 
 Lists
 
-=head2 Simple
+=head2 Bullet
+
+=over 4
+
+=item *
+
+foo
+
+=item *
+
+bar
+
+=item *
+
+baz
+
+=back
+
+=head2 Number
+
+=over 4
+
+=item 1
+
+foo
+
+=item 2
+
+bar
+
+=item 3
+
+baz
+
+=back
+
+=head2 Text
+
+=over 4
+
+=item do
+
+a deer, a female deer
+
+=item ray
+
+a drop of goden sun
+
+=item me
+
+me, a name, I call myself
+
+=item fa
+
+a long, long way to run
+
+=back
+
+=over 4
+
+=item * do
+
+a deer, a female deer
+
+=item * ray
+
+a drop of goden sun
+
+=back
+
+=over 4
+
+=item 3 me
+
+me, a name, I call myself
+
+=item 4 fa
+
+a long, long way to run
+
+=back
+
+=head2 Siblings
 
 =over 4
 
@@ -28,23 +110,7 @@ Star 3
 
 =back
 
-
-=over 4
-
-=item 1
-
-Number 1
-
-=item 2
-
-Number 2
-
-=item 3
-
-Number 3
-
-=back
-
+=head2 Markups
 
 =over 4
 

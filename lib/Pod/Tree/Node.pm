@@ -1,4 +1,4 @@
-# Copyright 1999 by Steven McDougall.  This module is free
+# Copyright 1999-2000 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
@@ -136,18 +136,55 @@ sub target  # ctor
 sub SplitTarget
 {
     my $text = shift;
+    my($page, $section);
 
-    $text =~ /^"(.*)"$/ and return ('', $1);     # L<"sec">;
+    if ($text =~ /^"(.*)"$/s)    # L<"sec">;
+    {
+	$page    = '';
+	$section = $1;
+    }
+    else                         # all other cases
+    {
+	($page, $section) = split m(/), $text, 2;   
 
-    my($page, $section) = split m(/), $text, 2;   # all other cases
+	# to quiet -w
+	defined $page    or $page    = '';
+	defined $section or $section = '';
 
-    # to quiet -w
-    defined $page    or $page    = '';
-    defined $section or $section = '';
+	$page    =~ s/\s*\(\d\)$//;    # ls (1) -> ls
+	$section =~ s( ^" | "$ )()xg;  # lose the quotes
 
-    $section =~ s( ^" | "$ )()xg;
+	# L<section in this man page> (without quotes)
+	if ($page !~ /^[\w.-]+(::[\w.-]+)*$/ and $section eq '')   
+	{                            
+	    $section = $page;
+	    $page = '';
+	}
+    }
+
+    $section =~ s(   \s*\n\s*   )( )xg;  # close line breaks
+    $section =~ s( ^\s+ | \s+$  )()xg;   # clip leading and trailing WS
     
     ($page, $section)
+}
+
+
+sub link  # ctor
+{
+    my($class, $node, $page, $section) = @_;
+
+    my $target = bless { type     => 'target',
+			 children => [ $node ],
+			 page     => $page,
+		         section  => $section }, $class;
+
+
+    my $link =   bless { type     => 'sequence',
+			 letter   => 'L',
+			 children => [ $node ],
+			 target   => $target }, $class;
+
+    $link
 }
 
 
@@ -235,9 +272,13 @@ sub get_deep_text
 {
     my $node = shift;
 
-    $node->is_text ? 
-	$node->{'text'} :
-	join '', map { $_->get_deep_text } @{$node->{children}}
+    for ($node->get_type)
+    {
+	/text/     and return $node->{'text'};
+	/verbatim/ and return $node->{'text'};
+    }
+
+    join '', map { $_->get_deep_text } @{$node->{children}}
 }
 
 
@@ -566,8 +607,8 @@ sub _set_item_type
     my $item = shift;
     my $text = $item->{'text'};
 
-    $text =~ /^\*/    and $item->{item_type} = 'bullet';
-    $text =~ /^\d/    and $item->{item_type} = 'number';
+    $text =~ m(^\s* \*  \s*$ )x and $item->{item_type} = 'bullet';
+    $text =~ m(^\s* \d+ \s*$ )x and $item->{item_type} = 'number';
     $item->{item_type} or $item->{item_type} = 'text';
 }
 
@@ -1230,7 +1271,7 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright 1999 by Steven McDougall. This module is free
+Copyright 1999-2000 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 

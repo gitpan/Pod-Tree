@@ -1,36 +1,45 @@
-#!/usr/local/bin/perl5.00401
+#!/usr/local/bin/perl
 
 use strict;
-use Getopt::Long;
 use File::Find;
+use Getopt::Long;
+use HTML::Stream;
+use IO::File;
 use Pod::Tree::HTML;
 
-my %Options;
-$Options{toc} = 1;
-my $ok = GetOptions(\%Options, 
-		    "base:s",
-		    "toc!", "hr:i", 
-		    "bgcolor:s", "text:s");
+my %Options = (bgcolor => '#fffff8',
+	       text    => '#000000',
+	       hr      => 1,
+	       toc     => 1 );
+
+my $ok = GetOptions(\%Options, "base:s", 
+		               "index:s", 
+		               "bgcolor:s", 
+		               "text:s",
+		               "toc!", 
+		               "hr:i");
 $ok or die "Bad command line options\n";
 
+my %Index;
 my($PodDir, $HTMLDir) = @ARGV;
 $HTMLDir or die "pods2html PodDir HTMLDir\n";
 
-$PodDir  =~ s(/$)();
-$HTMLDir =~ s(/$)();
+$PodDir  =~ s( /$ )()x;
+$HTMLDir =~ s( /$ )()x;
 
 umask 0022;
-find(\&Pod, $PodDir);
+find(\&Translate, $PodDir);
+Index() if $Options{index};
 
 
-sub Pod
+sub Translate
 {
-    -d and &MakeDir;
-    -f and &Translate;
+    -d and &Translate_Dir;
+    -f and &Translate_POD;
 }
 
 
-sub MakeDir
+sub Translate_Dir
 {
     print "$File::Find::name\n";
     my $dir = $File::Find::name;
@@ -39,7 +48,7 @@ sub MakeDir
 }
 
 
-sub Translate
+sub Translate_POD
 {
     m( \.(pm|pod)$ )x or return;
     print "$File::Find::name\n";
@@ -47,12 +56,60 @@ sub Translate
     my $source = $_;
 
     my $dest = $File::Find::name;
-    $dest =~ s/^$PodDir/$HTMLDir/o;
+    $dest =~ s/^$PodDir/$HTMLDir/;
     $dest =~ s( \.\w+$ )(.html)x;
+
+    my $pod = $File::Find::name;
+    $pod =~ s(^$PodDir)();
+    $pod =~ s( \.\w+$ )()x;
+    $Index{$pod} = 1;
 
     my $html = new Pod::Tree::HTML $source, $dest;
     $html->set_options(%Options);
     $html->translate;
+}
+
+
+sub Index
+{
+    my $index = "$HTMLDir/index.html";
+    my $fh = new IO::File ">$index";
+    defined $fh or die "Can't open $index: $!\n";
+
+    my $stream = new HTML::Stream $fh;
+
+    my $title    = $Options{index};
+    my $bgcolor  = $Options{bgcolor};
+    my $text 	 = $Options{text};
+
+    $stream-> HTML->HEAD;
+    $stream-> TITLE->text($title)->_TITLE;
+    $stream->_HEAD
+	   -> BODY(BGCOLOR => $bgcolor, TEXT => $text);
+    $stream->H1->t($title)->_H1;
+
+    Emit_Entries($stream);
+
+    $stream->_BODY->_HTML;
+}
+
+
+sub Emit_Entries
+{
+    my $stream = shift;
+
+    $stream->UL;
+
+    for my $entry (sort keys %Index)
+    {
+	$stream->LI
+	       ->A(HREF => "$entry.html")
+	       ->t($entry)
+	       ->_A
+	       ->_LI;
+    }
+
+    $stream->_UL;
 }
 
 __END__
@@ -65,16 +122,17 @@ pods2html - translate a tree of PODs to HTML
 
 C<pods2html> 
 [C<--base> I<url>]
+[C<--index> I<title>]
 [C<-->[C<no>]C<toc>] [C<--hr> I<level>] 
 [C<--bgcolor> I<#rrggbb>] [C<--text> I<#rrggbb>]
-F<PODdir> F<HTMLdir>
+I<PODdir> I<HTMLdir>
 
 =head1 DESCRIPTION
 
 C<pod2html> finds all the F<.pod> and F<.pm> files in the 
-directory tree rooted at F<PODdir>.
+directory tree rooted at I<PODdir>.
 It translates each POD to HTML,
-and writes it to a parallel directory tree rooted at F<HTMLdir>
+and writes it to a parallel directory tree rooted at I<HTMLdir>
 
 It makes the HTML files world-readable.
 
@@ -86,6 +144,11 @@ It makes the HTML files world-readable.
 
 Translate C<LE<lt>E<gt>> sequences into HTML
 links relative to I<url>.
+
+=item C<--index> I<title>
+
+Writes an index of all the HTML files to I<HTMLDir>F</index.html>.
+I<title> is used as the title of the index page.
 
 =item C<-->[C<no>]C<toc>
 

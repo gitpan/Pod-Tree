@@ -1,4 +1,4 @@
-# Copyright 1999 by Steven McDougall.  This module is free
+# Copyright 1999-2000 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
@@ -44,7 +44,8 @@ sub new
 	         hr          => 1,
 	         toc         => 1,
 	         base        => '',
-	         link_format => $LinkFormat };
+	         link_format => $LinkFormat,
+		 link_map    => Pod::Tree::HTML::LinkMap->new() };
 
     bless $HTML, $class;
 
@@ -131,7 +132,8 @@ sub translate
     $html->_emit_toc;
     $html->_emit_body;
 
-    $stream->_BODY
+    $stream->nl
+	   ->_BODY
 	   ->_HTML
 }
 
@@ -213,11 +215,11 @@ sub _emit_toc_item
 {
     my($html, $node) = @_;
     my $stream = $html->{stream};
-    my $target = _make_anchor($node);
+    my $target = $html->_make_anchor($node);
 
     $stream->LI->A(HREF => "#$target");
     $html->_emit_children($node);
-    $stream->_A->nl;
+    $stream->_A->_LI;
 }
 
 
@@ -248,10 +250,19 @@ sub _emit_siblings
 
     my $siblings = $node->get_siblings;
 
-    for my $sibling (@$siblings)
+    if (@$siblings==1 and $siblings->[0]{type} eq 'ordinary')
     {
-	$html->_emit_node($sibling);
+	# don't put <p></p> around a single ordinary paragraph
+	$html->_emit_children($siblings->[0]);
     }
+    else
+    {
+	for my $sibling (@$siblings)
+	{
+	    $html->_emit_node($sibling);
+	}
+    }
+    
 }
 
 
@@ -282,7 +293,7 @@ sub _emit_command
     my($html, $node) = @_;
     my $stream   = $html->{stream};
     my $command  = $node->get_command;
-    my $anchor   = _make_anchor($node);
+    my $anchor   = $html->_make_anchor($node);
     my $head_tag = $HeadTag{$command};
 
     $html->_emit_hr($head_tag->{level});
@@ -312,8 +323,12 @@ sub _emit_for
     my($html, $node) = @_;
     
     my $interpreter = $node->get_arg;
-    $interpreter eq 'html' and
-	$html->{stream}->io->print($node->get_text);
+    lc $interpreter eq 'html' or return;
+
+    my $stream = $html->{stream};
+    $stream->P;
+    $stream->io->print($node->get_text);
+    $stream->_P;
 }
 
 
@@ -325,17 +340,31 @@ sub _emit_item
     my $item_type = $node->get_item_type;
     for ($item_type)
     {
-	/bullet/ and $stream->LI(), last;
-	/number/ and $stream->LI(), last;
+	/bullet/ and do
+	{
+	    $stream->LI();
+	    $html->_emit_siblings($node);
+	    $stream->_LI();
+	};
+
+	/number/ and do
+	{
+	    $stream->LI();
+	    $html->_emit_siblings($node);
+	    $stream->_LI();
+	};
+
 	/text/   and do
 	{
-	    $stream->DT;
+	    my $anchor = $html->_make_anchor($node);
+	    $stream->DT->A(NAME => "$anchor");
 	    $html->_emit_children($node);
-	    $stream->DD;
+	    $stream->_A->_DT->DD;
+	    $html->_emit_siblings($node);
+	    $stream->_DD;
 	};
     }
 
-    $html->_emit_siblings($node);
 }
 
 
@@ -365,8 +394,11 @@ sub _emit_list
 sub _emit_ordinary
 {
     my($html, $node) = @_;
+    my $stream = $html->{stream};
+
+    $stream->P;
     $html->_emit_children($node);
-    $html->{stream}->P->nl;
+    $stream->_P;
 }
 
 
@@ -426,12 +458,14 @@ sub _emit_link
     my $target   = $node->get_target;
     my $page     = $target->get_page;
     my $section  = $target->get_section;
-    my $fragment = _escape_text($section);
+
+    my $link_map = $html->{link_map};
+    ($base, $page, $section) = $link_map->map($base, $page, $section);
 
     $base =~ s(/$)();
-    $page =~ s(::)(/)g;
+    my $fragment = $html->_escape_text($section);
 
-    my $i      = _make_index($base, $page, $fragment);
+    my $i      = $html->_make_index($base, $page, $fragment);
     my $format = $html->{link_format}[$i];
     my $url    = &$format($base, $page, $fragment);
 
@@ -443,6 +477,7 @@ sub _emit_link
 
 sub _make_index
 {
+    my $html = shift;
     my $i = 0;
 
     for (@_)
@@ -460,7 +495,7 @@ sub _emit_index
     my($html, $node) = @_;
 
     my $stream = $html->{stream};
-    my $anchor = _make_anchor($node);
+    my $anchor = $html->_make_anchor($node);
     $stream->A(NAME=>$anchor);
     $html->_emit_children($node);
     $stream->_A;
@@ -501,17 +536,37 @@ sub _emit_verbatim
 
 sub _make_anchor
 {
-    my $node = shift;
+    my($html, $node) = @_;
     my $text = $node->get_deep_text;
-    _escape_text($text)
+       $text =~ s(   \s*\n\s*/  )( )xg;  # close line breaks
+       $text =~ s( ^\s+ | \s+$  )()xg;   # clip leading and trailing WS
+       $html->_escape_text($text)
+}
+
+ 
+sub _escape_text
+{
+    my($html, $text) = @_;
+    $text =~ s(([^\w\-.!~*'()]))(sprintf("%%%02x", ord($1)))eg;
+    $text
 }
 
 
-sub _escape_text
+package Pod::Tree::HTML::LinkMap;
+
+sub new
 {
-    my $text = shift;
-    $text =~ s((\W))(sprintf("%02X", ord($1)))eg;
-    $text
+    my $class = shift;
+    bless {}, $class
+}
+
+sub map
+{
+    my($link_map, $base, $page, $section) = @_;
+
+    $page =~ s(::)(/)g;
+
+    ($base, $page, $section)
 }
 
 __END__
@@ -660,6 +715,36 @@ This method should only be called once.
 Translate C<LE<lt>E<gt>> sequences into HTML
 links relative to I<$url>.
 
+=item C<link_map> => I<$link_map>
+
+Sets the link mapping object.
+Before emitting an LE<lt>E<gt> markup in HTML, 
+C<translate> calls
+
+(I<$base>, I<$page>, I<$section>) = I<$link_map>-E<gt>C<map>(I<$base>, I<$page>, I<$section>);
+
+Where
+
+=over 4
+
+=item I<$base>
+
+is the URL given in the C<base> option.
+
+=item I<$page>
+
+is the man page named in the LE<li>E<gt> markup.
+
+=item I<$section>
+
+is the man page section given in the LE<li>E<gt> markup.
+
+=back
+
+The C<map> method may perform arbitrary mappings on its arguments.
+
+The default link_map translates C<::> sequences in I<$page> to C</>.
+
 =item C<toc> => [C<0>|C<1>]
 
 Includes or omits the table of contents.
@@ -687,13 +772,27 @@ Default is C<#fffff8>, which is an off-white.
 Set the text color to I<#rrggbb>.
 Default is C<#fffff>, which is black.
 
+=item C<title> => I<title>
+
+Set the page title to I<title>.
+If no C<title> option is given, 
+C<Pod::Tree::HTML> will attempt construct a title from the 
+second paragrah of the POD.
+This supports the following style:
+
+    =head1 NAME
+    
+    ls - list contents of directory
+
 =back
 
 =head1 LINKS and TARGETS
 
 C<Pod::Tree::HTML> automatically generates HTML name anchors for
-all =head1 and =head2 command paragraphs.
-Markups are ignored and non-word (\W) characters are translated to hex.
+all =head1 and =head2 command paragraphs,
+and for text items in =over lists.
+The text of the paragraph becomes the C<name> entity in the anchor.
+Markups are ignored and the text is escaped according to RFC 2396.
 
 For example, the paragraph
 
@@ -701,7 +800,7 @@ For example, the paragraph
 
 is translated to 
 
-	<h1><a name="Foo20Bar"><code>Foo</code> Bar</a></h1>
+	<h1><a name="Foo%20Bar"><code>Foo</code> Bar</a></h1>
 
 To link to a heading, 
 simply give the text of the heading in a C<LE<lt>E<gt>> markup.
@@ -750,7 +849,7 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright 1999 by Steven McDougall. This module is free
+Copyright 1999-2000 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 
