@@ -1,5 +1,54 @@
 Revision history for Perl extension Pod::Tree
 
+1.07	2001 May 29
+
+	Makefile.PL
+	- added EXE_FILES key
+	- added PREREQ_PM key
+
+	Pod::Tree
+	- preserve paragraph endings
+	- preserve non-POD content
+	- added has_pod() method
+	
+	Pod::Tree::Node
+	- added code() and is_code()
+	- added get_brackets() method
+	- added get_raw() method
+	- added clone() method
+	- added set_filename()/get_filename() methods
+	- added get_domain() and support for L<http://...>
+	- carry =pod and =cut in command nodes
+	- SplitBar() split(/\|/,,2) to protect links with a verbar
+	
+	Pod::Tree:HTML
+	- fixed load_paragraphs() call in resolve_source()
+	- added depth option
+	- render  =for image foo.gif  as  <img src="foo.gif">
+	- rewhacked _emit_link to support target domains
+
+	Pod::Tree::Pod
+	- correctly reconstructs L<> markups
+
+	Pod::Tree::PerlDist
+	- added perl* links for the README.* files
+
+	Pod::Tree::PerlFunc
+	- fixed ShiftItems() to handle the getpw* items in perlfunc.pod
+
+	Pod::Tree::PerlTop
+	- added _get_dist_links() to pick up the README.* files
+
+	pods2html
+	- fixed relative links
+	- don't translate foo.pm if foo.pod exists
+	- works if HTMLDir is a subdir of PodDir
+	- create HTMLDir with File::Path::mkpath
+
+	t/
+	- moved all the test files into .d/ directories
+
+
 1.06	2000 Oct 17
 
 	Added Pod::Tree::Pod

@@ -86,7 +86,7 @@ sub _scan_file
     $perl_pod->report2($link);
 
     my $name = (split m(/), $link)[-1];
-    my $desc = _get_description($source);
+    my $desc = $perl_pod->get_description($source);
 
     $dest   =~ s( \.\w+$ )(.html)x;
 
@@ -98,24 +98,6 @@ sub _scan_file
 
     $perl_pod->{pods}{$link} = $pod;
     $perl_pod->{options}{link_map}->add_page($name, $link);
-}
-
-
-sub _get_description
-{
-    my $source = shift;
-    my $tree   = new Pod::Tree;
-       $tree->load_file($source, limit => 2);
-    my $node1  = $tree->get_root->get_children->[1];
-       $node1 or return '';
-
-    my $text   = $node1->get_deep_text;
-    my($name, $description) = split m(\s+-\s+), $text;
-       $name   =~ s(^\s+)();
-       $name or return '';
-
-       $description =~ s(\s+)( )g;
-       $description
 }
 
 

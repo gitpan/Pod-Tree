@@ -2,6 +2,7 @@
 
 use strict;
 use File::Find;
+use File::Path;
 use Getopt::Long;
 use HTML::Stream;
 use IO::File;
@@ -24,8 +25,12 @@ my %Index;
 my($PodDir, $HTMLDir) = @ARGV;
 $HTMLDir or die "pods2html PodDir HTMLDir\n";
 
+mkpath($HTMLDir);
+
 $PodDir  =~ s( /$ )()x;
 $HTMLDir =~ s( /$ )()x;
+
+my $HTML_inode;
 
 umask 0022;
 find({ wanted   => \&Translate,
@@ -42,10 +47,17 @@ sub Translate
 
 sub Translate_Dir
 {
-    print "$File::Find::name\n";
     my $dir = $File::Find::name;
+
+    if ( (stat $dir)[1] == (stat $HTMLDir)[1] )
+    {
+	$File::Find::prune = 1;
+	return;
+    }
+
     $dir =~ s/^$PodDir/$HTMLDir/o;
     -d $dir or mkdir $dir, 0755 or die "Can't mkdir $dir: $!\n";
+    print "$File::Find::name\n";
 }
 
 
@@ -53,11 +65,15 @@ sub Translate_POD
 {
     m( \.(pm|pod)$ )x or return;
     my $source = $File::Find::name;
+
+    Hidden($source) and return;
     print "$source\n";
 
     my $dest = $source;
     $dest =~ s/^$PodDir/$HTMLDir/;
     $dest =~ s( \.\w+$ )(.html)x;
+
+    my $depth = Depth($source);
 
     my $pod = $source;
     $pod =~ s(^$PodDir/)();
@@ -65,22 +81,37 @@ sub Translate_POD
     $Index{$pod} = 1;
 
     my $html = new Pod::Tree::HTML $source, $dest;
-    $html->set_options(%Options);
+    $html->set_options(%Options, depth => $depth);
     $html->translate;
 }
 
+sub Hidden
+{
+    my $source = shift;
+       $source =~ m(\.pm$) or return 0;
+       $source =~ s(\.pm$)(.pod);
+    -e $source
+}
+
+sub Depth
+{
+    my $path  = shift;
+       $path  =~ s(^$PodDir/)();
+    my @path  = split m(/), $path;
+       @path - 1
+}
 
 sub Index
 {
-    my $index = "$HTMLDir/index.html";
-    my $fh = new IO::File ">$index";
+    my $index   = "$HTMLDir/index.html";
+    my $fh      = new IO::File ">$index";
     defined $fh or die "Can't open $index: $!\n";
 
-    my $stream = new HTML::Stream $fh;
+    my $stream  = new HTML::Stream $fh;
 
-    my $title    = $Options{index};
-    my $bgcolor  = $Options{bgcolor};
-    my $text 	 = $Options{text};
+    my $title   = $Options{index};
+    my $bgcolor = $Options{bgcolor};
+    my $text 	= $Options{text};
 
     $stream-> HTML->HEAD;
     $stream-> TITLE->text($title)->_TITLE;
@@ -118,6 +149,7 @@ __END__
 
 pods2html - translate a tree of PODs to HTML
 
+
 =head1 SYNOPSIS
 
 C<pods2html> 
@@ -126,6 +158,7 @@ C<pods2html>
 [C<-->[C<no>]C<toc>] [C<--hr> I<level>] 
 [C<--bgcolor> I<#rrggbb>] [C<--text> I<#rrggbb>]
 I<PODdir> I<HTMLdir>
+
 
 =head1 DESCRIPTION
 
@@ -136,24 +169,27 @@ and writes it to a parallel directory tree rooted at I<HTMLdir>
 
 It makes the HTML files world-readable.
 
+
 =head1 OPTIONS
 
 =over 4
 
 =item C<--base> I<url>
 
-Translate C<LE<lt>E<gt>> sequences into HTML
-links relative to I<url>.
+Specifies a base URL for HTML links.
+
 
 =item C<--index> I<title>
 
 Writes an index of all the HTML files to I<HTMLDir>F</index.html>.
 I<title> is used as the title of the index page.
 
+
 =item C<-->[C<no>]C<toc>
 
 Includes or omits the table of contents.
 Default is to include the TOC.
+
 
 =item C<--hr> I<level>
 
@@ -167,10 +203,12 @@ Controls the profusion of horizontal lines in the output, as follows:
 
 Default is level 1.
 
+
 =item C<--bgcolor> I<#rrggbb>
 
 Set the background color to I<#rrggbb>.
 Default is off-white.
+
 
 =item C<--text> I<#rrggbb>
 
@@ -179,20 +217,26 @@ Default is black.
 
 =back
 
+
 =head1 REQUIRES
 
-L<C<Pod::Tree::HTML>>
+L<C<Pod::Tree::HTML>>, 
+L<C<HTML::Stream>>
+
 
 =head1 SEE ALSO
 
-L<C<pod2html>>, L<C<Pod::Tree::HTML>>
+L<C<pod2html>>, 
+L<C<Pod::Tree::HTML>>
+
 
 =head1 AUTHOR
 
 Steven McDougall, <swmcd@world.std.com>
 
+
 =head1 COPYRIGHT
 
-Copyright 1999 by Steven McDougall.  This program is free software;
+Copyright 1999-2001 by Steven McDougall.  This program is free software;
 you can redistribute it and/or modify it under the same terms as Perl.
 

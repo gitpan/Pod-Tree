@@ -26,8 +26,9 @@ sub Option
 {
     my($option, $suffix, $value) = @_;
 
+    my $dir  = "t/option.d";
     my $tree = new Pod::Tree;
-    my $pod  = "t/$option.pod";
+    my $pod  = "$dir/$option.pod";
     $tree->load_file($pod) or die "Can't load $pod: $!\n";
 
     my $actual = new IO::String;
@@ -35,10 +36,10 @@ sub Option
     $html->set_options($option => $value);
     $html->translate;
 
-    my $expected = ReadFile("t/$option$suffix.h_exp");
+    my $expected = ReadFile("$dir/$option$suffix.exp");
     $$actual eq $expected or Not; OK;
 
-    WriteFile("t/$option$suffix.h_act"		              , $$actual);
+    WriteFile("$dir/$option$suffix.act"	              	      , $$actual);
 #   WriteFile("$ENV{HOME}/public_html/pod/$option$suffix.html", $$actual);
 }
 

@@ -1,4 +1,4 @@
-# Copyright 1999-2000 by Steven McDougall.  This module is free
+# Copyright 1999-2001 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
@@ -12,7 +12,7 @@ use HTML::Stream;
 use IO::File;
 use Pod::Tree;
 
-$Pod::Tree::HTML::VERSION = '1.05';
+$Pod::Tree::HTML::VERSION = '1.07';
 
 
 my $LinkFormat = [ sub { my($b,$p,$f)=@_; ""              },
@@ -32,17 +32,21 @@ sub new
     my $tree   = _resolve_source($source);
     my $stream = _resolve_dest  ($dest  ); 
 
+    my $options = { bgcolor     => '#fffff8',
+		    depth       => 0,
+		    hr          => 1,
+		    link_map    => Pod::Tree::HTML::LinkMap->new(),
+		    text        => '#000000',
+		    toc         => 1,
+		    };
+
     my $HTML = { tree        => $tree,
 		 root        => $tree->get_root,
 		 stream      => $stream,
 		 text_method => 'text',
-		 bgcolor     => '#fffff8',
-		 text        => '#000000',
-	         hr          => 1,
-	         toc         => 1,
-	         base        => '',
 	         link_format => $LinkFormat,
-		 link_map    => Pod::Tree::HTML::LinkMap->new() };
+		 options     => $options,
+		 };
 
     bless $HTML, $class;
 
@@ -60,10 +64,10 @@ sub _resolve_source
     isa $source, 'Pod::Tree' and return $source;
 
     my $tree = new Pod::Tree;
-    not $ref		    and $tree->load_file     ( $source);
-    isa $source, 'IO::File' and $tree->load_fh	     ( $source);
-    $ref eq 'SCALAR'        and $tree->load_string   ($$source);
-    $ref eq 'ARRAY'         and $tree->load_paragaphs( $source);
+    not $ref		    and $tree->load_file      ( $source);
+    isa $source, 'IO::File' and $tree->load_fh	      ( $source);
+    $ref eq 'SCALAR'        and $tree->load_string    ($$source);
+    $ref eq 'ARRAY'         and $tree->load_paragraphs( $source);
 
     $tree->loaded or 
 	die "Pod::Tree::HTML::_resolve_source: Can't load POD from $source\n";
@@ -93,8 +97,7 @@ sub set_options
     my($key, $value);
     while (($key, $value) = each %options)
     {
-	defined $value or $value = '';  # -w
-	$html->{$key} = $value;
+	$html->{options}{$key} = $value;
     }
 }
 
@@ -103,7 +106,7 @@ sub get_options
 {
     my($html, @options) = @_;
 
-    map { $html->{$_} } @options
+    map { $html->{options}{$_} } @options
 }
 
 
@@ -114,14 +117,15 @@ sub translate
 {
     my $html    = shift;
     my $stream 	= $html->{stream};
-    my $bgcolor = $html->{bgcolor};
-    my $text 	= $html->{text};
+    my $bgcolor = $html->{options}{bgcolor};
+    my $text 	= $html->{options}{text};
     my $title   = $html->_make_title;
-    my $base    = $html->{base};
+    my $base    = $html->{options}{base};
 
     $stream->HTML->HEAD;
     
     defined $title and $stream->TITLE->text($title)->_TITLE;
+    defined $base  and $stream->BASE(href => $base);
 
     $stream->_HEAD
 	   ->BODY(BGCOLOR => $bgcolor, TEXT => $text);
@@ -139,10 +143,19 @@ sub _make_title
 {
     my $html   = shift;
 
-    my $title = $html->{title};
+    my $title = $html->{options}{title};
     defined $title and return $title;
 
-    my $node1  = $html->{root}->get_children->[1];
+    my $children = $html->{root}->get_children;
+    my $node1;
+    my $i = 0;
+    for my $child (@$children)
+    {
+	is_pod $child or next;
+	$i++ and $node1 = $child;
+	$node1 and last;
+    }
+
     $node1 or return undef;
 
     my $text = $node1->get_deep_text;
@@ -158,7 +171,7 @@ sub _make_title
 sub _emit_toc
 {
     my $html = shift;
-    $html->{toc} or return;
+    $html->{options}{toc} or return;
 
     my $root  = $html->{root};
     my $nodes = $root->get_children;
@@ -166,7 +179,7 @@ sub _emit_toc
 
     $html->_emit_toc_1(\@nodes);
 
-    $html->{hr} > 0 and $html->{stream}->HR;
+    $html->{options}{hr} > 0 and $html->{stream}->HR;
 }
 
 
@@ -290,8 +303,9 @@ sub _emit_command
     my($html, $node) = @_;
     my $stream   = $html->{stream};
     my $command  = $node->get_command;
-    my $anchor   = $html->_make_anchor($node);
     my $head_tag = $HeadTag{$command};
+    $head_tag or return;
+    my $anchor   = $html->_make_anchor($node);
 
     $html->_emit_hr($head_tag->{level});
 
@@ -309,7 +323,7 @@ sub _emit_command
 sub _emit_hr
 {
     my($html, $level) = @_;
-    $html->{hr} > $level or return;
+    $html->{options}{hr} > $level or return;
     $html->{skip_first}++ or return;
     $html->{stream}->HR;
 }    
@@ -319,13 +333,31 @@ sub _emit_for
 {
     my($html, $node) = @_;
     
-    my $interpreter = $node->get_arg;
-    lc $interpreter eq 'html' or return;
+    my $interpreter = lc $node->get_arg;
+    my $emit        = "_emit_for_$interpreter";
+
+    $html->$emit($node) if $html->can($emit);
+}
+
+sub _emit_for_html
+{
+    my($html, $node) = @_;
 
     my $stream = $html->{stream};
     $stream->P;
     $stream->io->print($node->get_text);
     $stream->_P;
+}
+
+sub _emit_for_image
+{
+    my($html, $node) = @_;
+
+    my $stream = $html->{stream};
+    my $link   = $node->get_text;
+       $link =~ s(\s+$)();
+
+    $stream->IMG(src => $link);
 }
 
 
@@ -442,7 +474,7 @@ sub _emit_nbsp
     my $old_method = $html->{text_method};
     $html->{text_method} = 'text_nbsp';
     $html->_emit_children($node);
-    $html->{text_method} = 'text';
+    $html->{text_method} = $old_method;
 }
 
 
@@ -451,39 +483,43 @@ sub _emit_link
     my($html, $node) = @_;
 
     my $stream   = $html->{stream};
-    my $base     = $html->{base};
     my $target   = $node->get_target;
-    my $page     = $target->get_page;
-    my $section  = $target->get_section;
-
-    my $link_map = $html->{link_map};
-    ($base, $page, $section) = $link_map->map($base, $page, $section);
-
-    $base =~ s(/$)();
-    my $fragment = $html->_escape_text($section);
-
-    my $i      = $html->_make_index($base, $page, $fragment);
-    my $format = $html->{link_format}[$i];
-    my $url    = &$format($base, $page, $fragment);
+    my $domain   = $target->get_domain;
+    my $method   = "make_${domain}_URL";
+    my $url      = $html->$method($target);
 
     $stream->A(HREF=>$url);
     $html->_emit_children($node);
     $stream->_A;
 }
 
+sub bin { oct '0b' . join '', @_ }
 
-sub _make_index
+sub make_POD_URL
 {
-    my $html = shift;
-    my $i = 0;
+    my($html, $target) = @_;
 
-    for (@_)
-    {
-	$i <<= 1;
-	length and $i |= 1;
-    }
+    my $base     = $html->{options}{base} || '';
+    my $page     = $target->get_page;
+    my $section  = $target->get_section;
+    my $depth    = $html->{options}{depth};
 
-    $i
+    my $link_map = $html->{options}{link_map};
+    ($base, $page, $section) = $link_map->map($base, $page, $section, $depth);
+
+    $base =~ s(/$)();
+    my $fragment = $html->_escape_text($section);
+    my $i        = bin map { length($_) ? 1 : 0 } ($base, $page, $fragment);
+    my $url      = $html->{link_format}[$i]($base, $page, $fragment);
+
+    $url
+}
+
+sub make_HTTP_URL
+{
+    my($html, $target) = @_;
+
+    $target->get_page
 }
 
 
@@ -559,11 +595,11 @@ sub new
 
 sub map
 {
-    my($link_map, $base, $page, $section) = @_;
+    my($link_map, $base, $page, $section, $depth) = @_;
 
     $page =~ s(::)(/)g;
 
-    ($base, $page, $section)
+    ('../' x $depth, $page, $section)
 }
 
 __END__
@@ -576,7 +612,7 @@ Pod::Tree::HTML - Generate HTML from a Pod::Tree
 
   use Pod::Tree::HTML;
 
-  $source =   new Pod::Tree;
+  $source =   new Pod::Tree %options;
   $source =  "file.pod";
   $source =   new IO::File;
   $source = \$pod;
@@ -593,6 +629,7 @@ Pod::Tree::HTML - Generate HTML from a Pod::Tree
 
   $html->translate;
 
+
 =head1 DESCRIPTION
 
 C<Pod::Tree::HTML> reads a POD and translates it to HTML.
@@ -605,6 +642,7 @@ For convenience,
 C<Pod::Tree::HTML> can read PODs from a variety of sources,
 and write HTML to a variety of destinations.
 The C<new> method resolves the I<$source> and I<$dest> arguments.
+
 
 =head2 Source resolution
 
@@ -645,6 +683,7 @@ then the paragraphs of the POD are taken from that array.
 If I<$source> isn't any of these things,
 C<new> C<die>s.
 
+
 =head2 Destination resolution
 
 C<Pod::Tree::HTML> can write HTML to any of 3 destinations.
@@ -670,6 +709,7 @@ If I<$dest> is not a reference,
 then it is taken to be the name of the file where the HTML will be written.
 
 =back
+
 
 =head1 METHODS
 
@@ -703,22 +743,47 @@ This method should only be called once.
 
 =back
 
+
 =head1 OPTIONS
 
 =over 4
 
 =item C<base> => I<$url>
 
-Translate C<LE<lt>E<gt>> sequences into HTML
-links relative to I<$url>.
+Specifies a base URL for relative HTML links.
+
+
+=item C<bgcolor> => I<#rrggbb>
+
+Set the background color to I<#rrggbb>.
+Default is C<#fffff8>, which is an off-white.
+
+
+=item C<depth> => I<$depth>
+
+Specifies the depth of the generated HTML page in a directory tree.
+
+
+=item C<hr> => I<$level>
+
+Controls the profusion of horizontal lines in the output, as follows:
+
+    $level   horizontal lines
+    0 	     none
+    1 	     between TOC and body
+    2 	     after each =head1
+    3 	     after each =head1 and =head2
+
+Default is level 1.
+
 
 =item C<link_map> => I<$link_map>
 
 Sets the link mapping object.
-Before emitting an LE<lt>E<gt> markup in HTML, 
+Before emitting an C<< L<> >> markup in HTML, 
 C<translate> calls
 
-(I<$base>, I<$page>, I<$section>) = I<$link_map>-E<gt>C<map>(I<$base>, I<$page>, I<$section>);
+(I<$base>, I<$page>, I<$section>) = I<$link_map>-E<gt>C<map>(I<$base>, I<$page>, I<$section>, I<$depth>);
 
 Where
 
@@ -736,38 +801,28 @@ is the man page named in the LE<lt>E<gt> markup.
 
 is the man page section given in the LE<lt>E<gt> markup.
 
+=item (I<$depth>
+
+is the value of the C<depth> option.
+
 =back
 
 The C<map> method may perform arbitrary mappings on its arguments.
 
 The default link_map translates C<::> sequences in I<$page> to C</>.
+If the C<base> option is given, 
+it creates links relative to that URL;
+if the C<depth> option is given, 
+it creates links relative to the root of the HTML directory tree.
+If neither the C<base> nor C<depth> options are provided,
+the default link_map may not generate correct links.
 
-=item C<toc> => [C<0>|C<1>]
-
-Includes or omits the table of contents.
-Default is to include the TOC.
-
-=item C<hr> => I<$level>
-
-Controls the profusion of horizontal lines in the output, as follows:
-
-    $level   horizontal lines
-    0 	     none
-    1 	     between TOC and body
-    2 	     after each =head1
-    3 	     after each =head1 and =head2
-
-Default is level 1.
-
-=item C<bgcolor> => I<#rrggbb>
-
-Set the background color to I<#rrggbb>.
-Default is C<#fffff8>, which is an off-white.
 
 =item C<text> => I<#rrggbb>
 
 Set the text color to I<#rrggbb>.
 Default is C<#fffff>, which is black.
+
 
 =item C<title> => I<title>
 
@@ -781,7 +836,14 @@ This supports the following style:
     
     ls - list contents of directory
 
+
+=item C<toc> => [C<0>|C<1>]
+
+Includes or omits the table of contents.
+Default is to include the TOC.
+
 =back
+
 
 =head1 LINKS and TARGETS
 
@@ -800,7 +862,7 @@ is translated to
 	<h1><a name="Foo%20Bar"><code>Foo</code> Bar</a></h1>
 
 To link to a heading, 
-simply give the text of the heading in a C<LE<lt>E<gt>> markup.
+simply give the text of the heading in a C<< L<> >> markup.
 The text must match exactly; 
 markups may vary.
 Either of these would link to the heading shown above
@@ -809,13 +871,14 @@ Either of these would link to the heading shown above
 	L</Foo Bar>
 
 To generate HTML anchors in other places, 
-use the index (C<XE<lt>E<gt>>) markup
+use the index (C<< X<> >>) markup
 
 	We can link to X<this text>.
 
 and link to it as usual
 
 	L</this text> uses the index markup.
+
 
 =head1 DIAGNOSTICS
 
@@ -836,17 +899,20 @@ See L</Source resolution> for details.
 
 =back
 
+
 =head1 SEE ALSO
 
 perl(1), L<C<Pod::Tree>>, L<C<Pod::Tree::Node>>
+
 
 =head1 AUTHOR
 
 Steven McDougall, swmcd@world.std.com
 
+
 =head1 COPYRIGHT
 
-Copyright 1999-2000 by Steven McDougall. This module is free
+Copyright 1999-2001 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 

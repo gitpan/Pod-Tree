@@ -11,30 +11,27 @@ sub OK  { print "ok ", $N++, "\n" }
 
 print "1..6\n";
 
+my $dir = "t/pod.d";
 
 for my $file (qw(cut paragraph list sequence for link))
 {
-    my $tree1    = new Pod::Tree;
-       $tree1->load_file("t/$file.pod");
-    my $string   = new IO::String;
-    my $pod      = new Pod::Tree::Pod $tree1, $string;
+    my $tree   = new Pod::Tree;
+       $tree->load_file("$dir/$file.pod");
+    my $actual = new IO::String;
+    my $pod    = new Pod::Tree::Pod $tree, $actual;
        $pod->translate;
 
-    my $tree2    = new Pod::Tree;
-       $tree2->load_string($$string);
-    my $actual   = $tree2->dump;
-    my $expected = ReadFile("t/$file.p_exp");
-    $actual eq $expected or Not; OK;
+    my $expected = ReadFile("$dir/$file.pod");
+    $$actual eq $expected or Not; OK;
 
-    WriteFile("t/$file.pod2"   , $$string);
-    WriteFile("t/$file.pod_act",  $actual);
+    WriteFile("$dir/$file.act", $$actual);
 }
 
 
 sub ReadFile
 {
     my $file = shift;
-    open(FILE, $file) or return '';
+    open(FILE, $file) or die "Can't open $file: $!\n";
     local $/;
     undef $/;
     my $contents = <FILE>;

@@ -8,11 +8,13 @@ my $N = 1;
 sub Not { print "not " }
 sub OK  { print "ok ", $N++, "\n" }
 
+my $Dir = "t/load.d";
+
 print "1..3\n";
 
-LoadFH        ("t/list");
-LoadString    ("t/list");
-LoadParagraphs("t/list");
+LoadFH        ("$Dir/list");
+LoadString    ("$Dir/list");
+LoadParagraphs("$Dir/list");
 
 
 sub LoadFH
@@ -24,8 +26,10 @@ sub LoadFH
     $tree->load_fh($fh);
 
     my $actual   = $tree->dump;
-    my $expected = ReadFile("$file.p_exp");
+    my $expected = ReadFile("$file.exp");
     $actual eq $expected or Not; OK;
+
+    WriteFile("$file.act", $actual);
 }
 
 
@@ -37,7 +41,7 @@ sub LoadString
     $tree->load_string($string);
 
     my $actual = $tree->dump;
-    my $expected = ReadFile("$file.p_exp");
+    my $expected = ReadFile("$file.exp");
     $actual eq $expected or Not; OK;
 }
 
@@ -45,23 +49,37 @@ sub LoadString
 sub LoadParagraphs
 {
     my $file       = shift;
-    my $string     = ReadFile("$file.pod");
-    my @paragraphs = split m(\n{2,}), $string;
+    my @paragraphs = ReadParagraphs("$file.pod");
     my $tree       = new Pod::Tree;
 
     $tree->load_paragraphs(\@paragraphs);
 
     my $actual     = $tree->dump;
-    my $expected   = ReadFile("$file.p_exp");
+    my $expected   = ReadFile("$file.exp");
 
     $actual eq $expected or Not; OK;
 }
 
 
+sub ReadParagraphs
+{
+    my $file   = shift;
+    my $pod    = ReadFile($file);
+    my @chunks = split /(\n{2,})/, $pod;
+
+    my @paragraphs;
+    while (@chunks)
+    {
+	push @paragraphs, join '', splice @chunks, 0, 2;
+    }
+
+    @paragraphs
+}
+
 sub ReadFile
 {
     my $file = shift;
-    open(FILE, $file) or return '';
+    open(FILE, $file) or die "Can't open $file: $!\n";
     local $/;
     undef $/;
     my $contents = <FILE>;

@@ -10,4 +10,6 @@ WriteMakefile(NAME	   => 'Pod::Tree',
 	      clean        => { FILES => "t/*.?_act lib/Pod/Tree/*~" },
 	      dist         => { COMPRESS => 'gzip --best',
 				SUFFIX   => '.gz' },
+	      EXE_FILES	   => [qw(pod2html pods2html perl2html)],
+	      PREREQ_PM    => { HTML::Stream => 1.49 },
 );

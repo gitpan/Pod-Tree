@@ -1,10 +1,50 @@
-# Copyright 1999-2000 by Steven McDougall.  This module is free
+# Copyright 1999-2001 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
+
+package Stream;
+
+sub new
+{
+    my($package, $fh) = @_;
+
+    my $stream = { fh   => $fh,
+	           line => ''   };
+
+    bless $stream, $package
+}
+
+sub get_paragraph
+{
+    my $stream = shift;
+    my $fh     = $stream->{fh};
+    my $line   = $stream->{line};
+
+    defined $line or return undef;
+
+    my(@lines) = ($line);
+    while ($line = $fh->getline)
+    {
+	push @lines, $line;
+	$line eq "\n" and last;
+    }
+
+    while ($line = $fh->getline)
+    {
+	$line eq "\n" or last;
+	push @lines, $line;
+    }
+
+    $stream->{line} = $line;
+    join '', @lines
+}
+
+
+
 package Pod::Tree;
 
-require 5.004;
+require 5.6.0;
 require Exporter;
 
 use strict;
@@ -12,7 +52,7 @@ use IO::File;
 use Pod::Tree::Node;
 use base qw(Exporter);
 
-$Pod::Tree::VERSION = '1.06';
+$Pod::Tree::VERSION = '1.07';
 
 
 sub new
@@ -27,10 +67,14 @@ sub new
 sub load_file
 {
     my($tree, $file, %options) = @_;
+    
+    Pod::Tree::Node->set_filename($file);
 
     my $fh = new IO::File;
     $fh->open($file) or return '';
     $tree->load_fh($fh, %options);
+
+    Pod::Tree::Node->set_filename("");
     1
 }
 
@@ -43,16 +87,16 @@ sub load_fh
     $tree->_load_options(%options);
     my $limit = $tree->{limit};
 
-    local $/ = '';
-
+    my $stream = new Stream $fh;
     my $paragraph;
-    while ($paragraph = $fh->getline)
+    my @paragraphs;
+    while ($paragraph = $stream->get_paragraph)
     {
-	chomp $paragraph;
-	$tree->_add_paragraph($paragraph);
-	$limit and $limit==@{$tree->{paragraphs}} and last;
+	push @paragraphs, $paragraph;
+	$limit and $limit==@paragraphs and last;
     }
 
+    $tree->{paragraphs} = \@paragraphs;
     $tree->_parse;
 }
 
@@ -61,7 +105,14 @@ sub load_string
 {
     my($tree, $string, %options) = @_;
 
-    my @paragraphs = split m(\n{2,}), $string;
+    my @chunks = split /(\n{2,})/, $string;
+
+    my(@paragraphs);
+    while (@chunks)
+    {
+	push @paragraphs, join '', splice @chunks, 0, 2;
+    }
+
     $tree->load_paragraphs(\@paragraphs, %options);
 }
 
@@ -72,14 +123,12 @@ sub load_paragraphs
 
     $tree->{in_pod} = 1;
     $tree->_load_options(%options);
-    my $limit = $tree->{limit};
 
-    for my $paragraph (@$paragraphs)
-    {
-	$tree->_add_paragraph($paragraph);
-	$limit and $limit==@{$tree->{paragraphs}} and last;
-    }
+    my $limit      = $tree->{limit};
+    my @paragraphs = @$paragraphs;
+    $limit and splice @paragraphs, $limit;
 
+    $tree->{paragraphs} = \@paragraphs;
     $tree->_parse;
 }
 
@@ -95,23 +144,6 @@ sub _load_options
     while (($key, $value) = each %options)
     {
 	$tree->{$key} = $value;
-    }
-}
-
-
-sub _add_paragraph
-{
-    my($tree, $paragraph) = @_;
-
-    for ($paragraph)
-    {
-	/^=cut/         and do { $tree->{in_pod}=0;		
-				 last };
-	$tree->{in_pod} and do { push @{$tree->{paragraphs}}, $paragraph; 
-				 last };
-	/^=\w/          and do { $tree->{in_pod}=1;
-				 push @{$tree->{paragraphs}}, $paragraph;  
-				 last };
     }
 }
 
@@ -135,35 +167,67 @@ sub _parse
 }
 
 
-my %Ignore  = map { $_ => 1 } qw(=pod =cut);
+sub _add_paragraph
+{
+    my($tree, $paragraph) = @_;
 
-my %Command = map { $_ => 1 } qw(=head1 =head2 
+    for ($paragraph)
+    {
+	/^=cut/         and do { $tree->{in_pod}=0;		
+				 last };
+	$tree->{in_pod} and do { push @{$tree->{paragraphs}}, $paragraph; 
+				 last };
+	/^=\w/          and do { $tree->{in_pod}=1;
+				 push @{$tree->{paragraphs}}, $paragraph;  
+				 last };
+    }
+}
+
+
+my %Command = map { $_ => 1 } qw(=pod =cut
+				 =head1 =head2 
 				 =over =item =back 
 				 =for =begin =end);
 
 sub _make_nodes
 {
-    my $tree = shift;
+    my $tree       = shift;
     my $paragraphs = $tree->{paragraphs};
+    my $in_pod     = $tree->{in_pod};
     my @children;
 
     for my $paragraph (@$paragraphs)
     {
 	my($word) = split(/\s/, $paragraph);
-	$Ignore{$word} and next;
-
 	my $node;
-	if ($paragraph =~ /^\s/)
+
+	if ($in_pod)
 	{
-	    $node = verbatim Pod::Tree::Node $paragraph;
-	}
-	elsif ($Command{$word})
-	{
-	    $node = command  Pod::Tree::Node $paragraph;
+	    if ($paragraph =~ /^\s/)
+	    {
+		$node = verbatim Pod::Tree::Node $paragraph;
+	    }
+	    elsif ($Command{$word})
+	    {
+		$node = command  Pod::Tree::Node $paragraph;
+		$in_pod = $word ne '=cut';
+	    }
+	    else
+	    {
+		$node = ordinary Pod::Tree::Node $paragraph;
+	    }
 	}
 	else
 	{
-	    $node = ordinary Pod::Tree::Node $paragraph;
+	    if ($Command{$word})
+	    {
+		$node = command  Pod::Tree::Node $paragraph;
+		$in_pod = $word ne '=cut';
+	    }
+	    else
+	    {
+		$node = code     Pod::Tree::Node $paragraph;
+	    }
 	}
 
 	push @children, $node;
@@ -200,6 +264,7 @@ sub _make_sequences
 
     for my $node (@$nodes)
     {
+	is_code     $node and next;
 	is_verbatim $node and next;
 	is_for      $node and next;
 	$node->make_sequences;
@@ -272,6 +337,15 @@ sub _walk
     }
 }
 
+sub has_pod
+{
+    my $tree     = shift;
+    my $root     = $tree->get_root;
+    my $children = $root->get_children;
+
+    scalar grep { $_->get_type ne 'code' } @$children;
+}
+
 
 1
 
@@ -280,6 +354,7 @@ __END__
 =head1 NAME
 
 Pod::Tree - Create a static syntax tree for a POD
+
 
 =head1 SYNOPSIS
 
@@ -299,21 +374,26 @@ Pod::Tree - Create a static syntax tree for a POD
             $tree->push(@nodes);
   
             $tree->walk(\&sub);
+            $tree->has_pod and ...
   print     $tree->dump;
+
 
 =head1 REQUIRES
 
-Perl 5.004, Exporter, IO::File, Pod::Tree::Node
+Perl 5.6.0, Exporter, IO::File, Pod::Tree::Node
+
 
 =head1 EXPORTS
 
 Nothing
+
 
 =head1 DESCRIPTION
 
 C<Pod::Tree> parses a POD into a static syntax tree.
 Applications walk the tree to recover the structure and content of the POD.
 See L<C<Pod::Tree::Node>> for a description of the tree.
+
 
 =head1 METHODS
 
@@ -324,6 +404,7 @@ See L<C<Pod::Tree::Node>> for a description of the tree.
 Creates a new C<Pod::Tree> object.
 The syntax tree is initially empty.
 
+
 =item I<$ok> = I<$tree>->C<load_file>(I<$file>, I<%options>)
 
 Parses a POD and creates a syntax tree for it.
@@ -332,6 +413,7 @@ Returns null iff it can't open I<$file>.
 
 See L</OPTIONS> for a description of I<%options>
 
+
 =item I<$tree>->C<load_fh>(I<$fh>, I<%options>)
 
 Parses a POD and creates a syntax tree for it.
@@ -339,12 +421,14 @@ I<$fh> is an C<IO::File> object that is open on a file containing the POD.
 
 See L</OPTIONS> for a description of I<%options>
 
+
 =item I<$tree>->C<load_string>(I<$pod>, I<%options>)
 
 Parses a POD and creates a syntax tree for it.
 I<$pod> is a single string containing the POD.
 
 See L</OPTIONS> for a description of I<%options>
+
 
 =item I<$tree>->C<load_paragraphs>(\I<@pod>, I<%options>)
 
@@ -354,26 +438,32 @@ Each string is one paragraph of the POD.
 
 See L</OPTIONS> for a description of I<%options>
 
+
 =item I<$loaded> = I<$tree>->C<loaded>
 
 Returns true iff one of the C<load_>* methods has been called on I<$tree>.
+
 
 =item I<$node> = I<$tree>->C<get_root>
 
 Returns the root node of the syntax tree.
 See L<Pod::Tree::Node> for a description of the syntax tree.
 
+
 =item I<$tree>->C<set_root>(I<$node>)
 
 Sets to the root of the syntax tree to I<$node>.
+
 
 =item I<$tree>->C<push>(I<@nodes>)
 
 Pushes I<@nodes> onto the end of the top-level list of nodes in I<$tree>.
 
+
 =item I<$node> = I<$tree>->C<pop>
 
 Pops I<$node> off of the end of the top-level list of nodes in I<$tree>.
+
 
 =item I<$tree>->C<walk>(I<\&sub>)
 
@@ -384,6 +474,12 @@ The current node is passed as the first argument to I<sub>.
 C<walk> descends to the children and siblings of I<$node> iff
 I<sub()> returns true.
 
+
+=item I<$tree>->C<has_pod>
+
+Returns true iff I<$tree> contains POD paragraphs.
+
+
 =item I<$tree>->C<dump>
 
 Pretty prints the syntax tree.
@@ -391,18 +487,20 @@ This will show you how C<Pod::Tree> interpreted your POD.
 
 =back
 
+
 =head1 OPTIONS
 
 These options may be passed in the I<%options> hash to the C<load_>* methods.
 
 =over 4
 
-=item C<in_pod =E<gt> 0>
+=item C<< in_pod => 0 >>
 
-=item C<in_pod =E<gt> 1>
+=item C<< in_pod => 1 >>
 
 Sets the initial value of C<in_pod>.
 When C<in_pod> is false,
+all 
 the parser ignores all text until the next =command paragraph.
 
 The initial value of C<in_pod> 
@@ -412,11 +510,13 @@ This is usually what you want, unless you want consistency.
 If this isn't what you want,
 pass different initial values in the I<%options> hash.
 
+
 =item C<limit> => I<n>
 
 Only parse the first I<n> paragraphs in the POD.
 
 =back
+
 
 =head1 DIAGNOSTICS
 
@@ -428,48 +528,24 @@ Returns null iff it can't open I<$file>.
 
 =back
 
+
 =head1 NOTES
 
-=head2 Blank lines
+=head2 No round-tripping
 
-PODs are defined in terms of paragraphs,
-and paragraphs are defined as text delimited by 
-two or more consecutive newlines.
+Currently, C<Pod::Tree> does not provide a complete, exact 
+representation of its input. For example, it doesn't distingish
+between 
 
-C<load_file()> and C<load_fh()> parse paragraphs by 
-setting C<$/> to C<''> and calling C<getline()>.
-This reads paragraphs as desired;
-however, 
-the strings returned by C<getline()> always have two newlines at the end, 
-no matter now many actually appear in the input.
-I reported this as a bug against Perl, 
-but was told that it is a feature.
+    C<$foo-E<gt>bar>
 
-To fix this, 
-I would have to abandon C<$/> and count newlines in C<Pod::Tree>.
-From a coding standpoint, 
-this isn't difficult, 
-but I hate to do it:
-C<$/> ought to be good for I<something>.
+and 
 
-Instead,
-C<load_file()> and C<load_fh()> go ahead and C<chomp> the line endings. 
-C<pod2>* translators can add back C<"\n\n"> if they like,
-but there is no way to recover the actual number of newlines
-in the input.
-For consistency,
-C<load_string()> splits on C<m(\n{2,})> and discards the delimiters.
-In contrast, C<load_paragraphs()> doesn't mung newlines.
-By definition,
-text passed to C<load_paragraphs()> has already been divided into 
-paragraphs, 
-so any trailing newlines are taken to be part of the 
-paragraph in which they appear.
+   C<< $foo->bar >>
 
-None of this should be an issue for ordinary POD paragraphs.
-However, 
-it could be a problem for C<=begin>/C<=end> blocks,
-if they pass text to a formatter for which blank lines are significant.
+As a result, it is not guaranteed that a file can be
+exactly reconstructed from its C<Pod::Tree> representation.
+
 
 =head2 LZ<><> markups
 
@@ -496,16 +572,58 @@ In practice, this tends to break links to sections.
 If you want your section links to work reliably, 
 write them as C<< LZ<><"foo"> >> or C<< LZ<></foo> >>.
 
+
 =head1 SEE ALSO
 
 perl(1), L<C<Pod::Tree::Node>>, L<C<Pod::Tree::HTML>>
 
+
+=head1 ACKNOWLEDGMENTS
+
+=over 4
+
+=item *
+
+Sean M. Burke <sburke@spinn.net>
+
+=item *
+
+Rudi Farkas <rudif@bluemail.ch>
+
+=item *
+
+Jost Krieger <Jost.Krieger@ruhr-uni-bochum.de>
+
+=item *
+
+Jonas Liljegren <jonas@jonas.rit.se>
+
+=item *
+
+Johan Lindstrom <johanl@bahnhof.se>
+
+=item *
+
+Rob Napier <rnapier@employees.org>
+
+=item *
+
+Christopher Shalah <trance@drizzle.com>
+
+=item *
+
+Johan Vromans <JVromans@Squirrel.nl >
+
+=back
+
+
 =head1 AUTHOR
 
-Steven McDougall, swmcd@world.std.com
+Steven McDougall <swmcd@world.std.com>
+
 
 =head1 COPYRIGHT
 
-Copyright 1999-2000 by Steven McDougall. This module is free
+Copyright 1999-2001 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

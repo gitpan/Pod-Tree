@@ -41,7 +41,7 @@ sub scan
 	for my $file (readdir(DIR))
 	{
 	    my $path = "$dir/$file";
-	    -f $path and -T $path or next;
+	    -f $path and -x $path and -T $path or next;
 	    $perl_bin->scan_file($dir, $file);
 	}
     }
@@ -78,15 +78,12 @@ sub scan_file
     my $link     = "$bin_dir/$file";
     my $dest     = "$html_dir/$link.html";
 
-    my $tree  = new Pod::Tree;
-       $tree->load_file($source, limit => 2);
-
-    my $node1 = $tree->get_root->get_children->[1];
-       $node1 or return;
-
-    my $text = $node1->get_deep_text;
-    my($name, $description) = split m(\s+-\s+), $text;
+    my($name, $description) = $perl_bin->get_name($source);
        $name or return;
+
+       # Translate the first copy found in $PATH
+       $perl_bin->{index}{$name} and return;
+
        $perl_bin->report2($source);
 
     my $entry = { source      => $source,
@@ -94,10 +91,9 @@ sub scan_file
 		  file        => $file,
 		  description => $description };
 
-    $perl_bin->{index}{$name} = $entry;
-
-    $perl_bin->{options}{link_map}->add_page($file, $link);
-    $perl_bin->{options}{link_map}->add_page($name, $link);
+       $perl_bin->{index}{$name} = $entry;
+       $perl_bin->{options}{link_map}->add_page($file, $link);
+       $perl_bin->{options}{link_map}->add_page($name, $link);
 }
 
 

@@ -41,4 +41,36 @@ sub report2
     $verbosity==3 and print STDERR "$page\n";
 }
 
+
+sub get_name
+{
+    my($node, $source) = @_;
+
+    my $tree     = new Pod::Tree;
+       $tree->load_file($source);
+    my $children = $tree->get_root->get_children;
+    my @pod      = grep { is_pod $_ } @$children;
+    my $node1    = $pod[1];
+       $node1 or return ();
+
+    my $text     = $node1->get_deep_text;
+    my($name, $description) = split m(\s+-\s+), $text, 2;
+       $name     =~ s(^\s+)();
+       $name or return ();
+
+       $description =~ s(\s+)( )g;
+       $description =~ s(\s+$)();
+
+      ($name, $description)
+}
+
+sub get_description
+{
+    my($node, $source) = @_;
+
+    my($name, $description) = $node->get_name($source);
+    $description
+}
+
+
 1

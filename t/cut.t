@@ -8,39 +8,40 @@ my $N = 1;
 sub Not { print "not " }
 sub OK  { print "ok ", $N++, "\n" }
 
+my $Dir = "t/cut.d";
+
 print "1..6\n";
 
-LoadFile      ("t/cut");
-LoadFile      ("t/cut", 0);
-LoadFile      ("t/cut", 1);
-LoadString    ("t/cut");
-LoadString    ("t/cut", 0);
-LoadString    ("t/cut", 1);
+LoadFile      ("fileU"     );
+LoadFile      ("file0"  , 0);
+LoadFile      ("file1"  , 1);
+LoadString    ("stringU"   );
+LoadString    ("string0", 0);
+LoadString    ("string1", 1);
 
 
 sub LoadFile
 {
-    my($file, $in_pod) = @_;
+    my($dump, $in_pod) = @_;
 
     my %options;
     defined $in_pod and $options{in_pod} = $in_pod;
 
     my $tree = new Pod::Tree;
-    $tree->load_file("$file.pod", %options);
+    $tree->load_file("$Dir/cut.pod", %options);
 
     my $actual   = $tree->dump;
-    my $suffix   = defined $in_pod ? "F$in_pod" : "FU";
-    my $expected = ReadFile("$file$suffix.p_exp");
+    my $expected = ReadFile("$Dir/$dump.exp");
     $actual eq $expected or Not; OK;
 
-    WriteFile("$file$suffix.p_act", $actual);
+    WriteFile("$Dir/$dump.act", $actual);
 }
 
 
 sub LoadString
 {
-    my($file, $in_pod) = @_;
-    my $string = ReadFile("$file.pod");
+    my($dump, $in_pod) = @_;
+    my $string = ReadFile("$Dir/cut.pod");
 
     my %options;
     defined $in_pod and $options{in_pod} = $in_pod;
@@ -49,11 +50,10 @@ sub LoadString
     $tree->load_string($string, %options);
 
     my $actual   = $tree->dump;
-    my $suffix   = defined $in_pod ? "S$in_pod" : "SU";
-    my $expected = ReadFile("$file$suffix.p_exp");
+    my $expected = ReadFile("$Dir/$dump.exp");
     $actual eq $expected or Not; OK;
 
-    WriteFile("$file$suffix.p_act", $actual);
+    WriteFile("$Dir/$dump.act", $actual);
 }
 
 

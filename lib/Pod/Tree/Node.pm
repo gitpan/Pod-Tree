@@ -1,4 +1,4 @@
-# Copyright 1999-2000 by Steven McDougall.  This module is free
+# Copyright 1999-2001 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
@@ -8,7 +8,7 @@ require 5.004;
 
 use strict;
 
-$Pod::Tree::Node::VERSION = '1.06';
+$Pod::Tree::Node::VERSION = '1.07';
 
 
 sub root  # ctor
@@ -17,6 +17,17 @@ sub root  # ctor
 
     my $node = { type     => 'root',
 		 children => $children };
+
+    bless $node, $class
+}
+
+
+sub code #ctor
+{
+    my($class, $paragraph) = @_;
+
+    my $node = { type => 'code',
+		 text => $paragraph };
 
     bless $node, $class
 }
@@ -54,7 +65,6 @@ sub command  # ctor
 	$arg = '';
     }
 
-    defined $text or $text = '';   # -w strikes again
     $command =~ s/^=//;
 
     my $node = { type    => 'command',
@@ -122,10 +132,21 @@ sub target  # ctor
 		       children => $children }, $class;
 
     $node->unescape;
+    my $text = $node->get_deep_text;
 
-    my($page, $section) = SplitTarget($node->get_deep_text);
-    $node->{page   } = $page;
-    $node->{section} = $section;
+    if ($text =~ m(://))       # a URL
+    {
+	$node->{page   } = $text;
+	$node->{section} = '';
+	$node->{domain } = 'HTTP';
+    }
+    else                       # a POD link
+    {
+	my($page, $section) = SplitTarget($text);
+	$node->{page   } = $page;
+	$node->{section} = $section;
+	$node->{domain } = 'POD';
+    }
 
     $node
 }
@@ -136,12 +157,12 @@ sub SplitTarget
     my $text = shift;
     my($page, $section);
 
-    if ($text =~ /^"(.*)"$/s)    # L<"sec">;
+    if ($text =~ /^"(.*)"$/s)     # L<"sec">;
     {
 	$page    = '';
 	$section = $1;
     }
-    else                         # all other cases
+    else                          # all other cases
     {
 	($page, $section) = split m(/), $text, 2;   
 
@@ -172,6 +193,7 @@ sub link  # ctor
     my($class, $node, $page, $section) = @_;
 
     my $target = bless { type     => 'target',
+			 domain   => 'POD',
 			 children => [ $node ],
 			 page     => $page,
 		         section  => $section }, $class;
@@ -186,6 +208,7 @@ sub link  # ctor
 }
 
 
+sub is_code     { shift->{type} eq 'code'     }
 sub is_command  { shift->{type} eq 'command'  }
 sub is_for      { shift->{type} eq 'for'      }
 sub is_item     { shift->{type} eq 'item'     }
@@ -203,6 +226,11 @@ sub is_link
     is_sequence $node and $node->{'letter'} eq 'L'
 }
 
+sub is_pod
+{
+    my $node = shift;
+    not is_code $node and not is_c_cut $node and not is_c_pod $node
+}
 
 sub is_c_head1
 { 
@@ -214,6 +242,18 @@ sub is_c_head2
 { 
     my $node = shift; 
     $node->{type} eq 'command' and $node->{'command'} eq 'head2' 
+}
+
+sub is_c_cut
+{ 
+    my $node = shift; 
+    $node->{type} eq 'command' and $node->{'command'} eq 'cut' 
+}
+
+sub is_c_pod
+{ 
+    my $node = shift; 
+    $node->{type} eq 'command' and $node->{'command'} eq 'pod' 
 }
 
 sub is_c_over
@@ -253,17 +293,29 @@ sub is_c_end
 }
 
 sub get_arg       { shift->{ arg       } }
+sub get_back      { shift->{ back      } }
 sub get_children  { shift->{ children  } }
 sub get_command   { shift->{'command'  } }
+sub get_domain    { shift->{ domain    } }
 sub get_item_type { shift->{ item_type } }
 sub get_letter    { shift->{'letter'   } }
 sub get_list_type { shift->{ list_type } }
 sub get_page      { shift->{ page      } }
+sub get_raw       { shift->{ raw       } }
+sub get_raw_kids  { shift->{ raw_kids  } }
 sub get_section   { shift->{ section   } }
 sub get_siblings  { shift->{ siblings  } }
 sub get_target    { shift->{'target'   } }
 sub get_text      { shift->{'text'     } }
 sub get_type      { shift->{'type'     } }
+sub get_url       { shift->{'url'      } }
+
+sub get_brackets  
+{ 
+    my $node     = shift;
+    my $brackets = $node->{brackets};
+    $brackets
+}
 
 
 sub get_deep_text
@@ -292,7 +344,11 @@ sub force_text
 sub force_for
 {
     my $node = shift;
-    $node->{ type } = 'for';
+    $node->{type    } = 'for';
+
+    my($bracket) = $node->{raw} =~ /^(=\w+\s+\w+\s+)/;
+
+    $node->{brackets} = [ $bracket ];
 }
 
 
@@ -308,13 +364,14 @@ sub parse_begin
 	is_c_end $foreign and last;
 	push @raw, $foreign->{'raw'};
     }
-    $node->{'text'} = join "\n\n", @raw;
+    $node->{'text'} = join '', @raw;
 
     my $interpreter = $foreign->{arg};
     $interpreter and $interpreter ne $node->{arg} and
-	warn "Mismatched =begin/=end tags around $node->{'text'}\n";
+	$node->_warn("Mismatched =begin/=end tags around\n$node->{'text'}");
 
-    $node->force_for;
+    $node->{type    } = 'for';
+    $node->{brackets} = [ $node->{raw}, $foreign->{raw} ];
 }
 
 
@@ -373,7 +430,7 @@ sub _parse_text
     if (@width)
     {
 	my @text = map { $_->get_deep_text } @stack;
-	warn "Missing '>' delimiter in\n@text\n\n";
+	Pod::Tree::Node->_warn("Missing '>' delimiter in\n@text");
     }
 
     \@stack
@@ -394,7 +451,7 @@ sub _pop_sequence
     }
 
     my @text = map { $_->get_deep_text } @interior;
-    warn "Mismatched sequence delimiters around\n@text\n\n";
+    $node->_warn("Mismatched sequence delimiters around\n@text");
 
     $node = letter Pod::Tree::Node  ' ';
     $node, \@interior;
@@ -417,9 +474,11 @@ sub parse_links
 
 sub _parse_link
 {
-    my $node     = shift;
+    my $node = shift;
+
+    $node->{raw_kids} = $node->clone->{children};
+
     my $children = $node->{children};
-    
     my($text_kids, $target_kids) = SplitBar($children);
 
     $node->{ children } = $text_kids;
@@ -442,7 +501,7 @@ sub SplitBar
 	    next;
 	};
 	
-	my($text, $link) = split m(\|), $child->{'text'};
+	my($text, $link) = split m(\|), $child->{'text'}, 2;
 	$link and do
 	{
 	    push @text,  text Pod::Tree::Node $text if $text;
@@ -521,8 +580,8 @@ sub consolidate
 
     while (@$old)
     {
-	if (is_text $new->[-1] and 
-	    is_text $old->[ 0])
+	if (is_text $new->[-1] and is_text $old->[ 0] or
+	    is_code $new->[-1] and is_code $old->[ 0] )
 	{
 	    $new->[-1]{'text'} .= $old->[0]{'text'};
 	    shift @$old;
@@ -555,13 +614,14 @@ sub _make_lists
 {
     my($node, $old) = @_;
     my $new = [];
+    my $back;
 
     while (@$old)
     {
 	my $child = shift @$old;
 	is_c_over $child and $child->_make_lists($old);
 	is_c_item $child and $child->_make_item ($old);
-	is_c_back $child and last;
+	is_c_back $child and $back = $child, last;
 	push @$new, $child;
     }
 
@@ -570,6 +630,7 @@ sub _make_lists
     is_root $node and return;
 
     $node->{type} = 'list';
+    $node->{back} = $back;
     $node->_set_list_type;
 }
 
@@ -578,6 +639,8 @@ sub _set_list_type
 {
     my $list     = shift;
     my $children = $list->{children};
+
+    $list->{list_type} = '';  # -w
 
     for my $child (@$children)
     {
@@ -623,6 +686,17 @@ sub _set_item_type
     $item->{item_type} or $item->{item_type} = 'text';
 }
 
+sub clone
+{
+    my $node  = shift;
+    my $clone = { %$node };
+
+    my $children = $node->{children};
+    $clone->{children} = [ map { $_->clone } @$children ];
+
+    bless $clone, ref $node
+}
+
 
 my $Indent;
 my $String;
@@ -647,26 +721,74 @@ sub _dump
 
     for ($type)
     {
-	/command/  and $String .= $node->get_command . ' ' .  $node->get_arg;
+	/command/  and $String .= $node->_dump_command;
+	/code/     and $String .= $node->_dump_code;
 	/for/      and $String .= $node->_dump_for;
-	/item/     and $String .= uc $node->get_item_type;
-	/list/     and $String .= uc $node->get_list_type;
+	/item/     and $String .= $node->_dump_item;
+	/list/     and $String .= $node->_dump_list;
+	/ordinary/ and $String .= "\n";
+	/root/     and $String .= "\n";
 	/sequence/ and $String .= $node->_dump_sequence;
 	/text/     and $String .= $node->_dump_text;
-	/verbatim/ and $String .= "\n" . $node->get_text;
+	/verbatim/ and $String .= $node->_dump_verbatim;
     }
 
-    $String .= "\n";
     $node->_dump_children;
     $node->_dump_siblings;
 }
 
 
-sub _dump_sequence
+sub _dump_command
+{
+    my $node    = shift;
+    my $command = $node->get_command;
+    my $arg     = $node->get_arg;
+
+    "$command $arg\n"
+}
+
+
+sub _dump_code
+{
+    my $node  = shift;
+
+    my $text  = _indent($node->get_text, 3);
+    my $block = "\n{\n$text}\n";
+
+    _indent($block, $Indent)
+}
+
+sub _dump_for
 {
     my $node = shift;
+    my $arg  = $node->get_arg;
+    my $text = _indent($node->get_text, $Indent+3);
 
-    $node->get_letter . ($node->is_link ? $node->_dump_target : '')
+    "$arg\n$text\n"
+}
+
+
+sub _dump_item
+{
+    my $node = shift;
+    uc $node->get_item_type . "\n"
+}
+
+
+sub _dump_list
+{
+    my $node = shift;
+    uc $node->get_list_type . "\n"
+}
+
+
+sub _dump_sequence
+{
+    my $node   = shift;
+    my $letter = $node->get_letter;
+    my $link   = $node->is_link ? $node->_dump_target : '';
+
+    "$letter$link\n";
 }
 
 
@@ -676,8 +798,15 @@ sub _dump_text
     my $text = $node->get_text;
 
     my $indent = ' ' x ($Indent+5);
-    $text =~ s(\n)(\n$indent)g;
-    $text
+    $text =~ s( (?<=\n) (?=.) )($indent)xg;
+    "$text\n"
+}
+
+
+sub _dump_verbatim
+{
+    my $node = shift;
+    "\n" . $node->get_text . "\n"
 }
 
 
@@ -724,25 +853,41 @@ sub DumpList
 }
 
 
-sub _dump_for
-{
-    my $node = shift;
-
-    $node->get_arg . "\n" .  _indent($node->get_text, $Indent+3)
-}
-
-
 sub _indent
 {
     my($text, $spaces) = @_;
     my $indent = ' ' x $spaces;
-    $text =~ s(\n)(\n$indent)g;
-    "$indent$text"
+    $text =~ s( (?<=\n) (?=.) )($indent)xg;
+    $indent . $text
 }
+
+
+sub _warn
+{
+    my($node, $message) = @_;
+
+    my $filename = $node->get_filename;
+    my $tag      = $filename ? "in $filename" : $filename;
+    warn "$message $tag\n";
+}
+
+sub set_filename
+{
+    my($package, $filename) = @_;
+    
+    $Pod::Tree::Node::filename = $filename;
+}
+
+sub get_filename
+{
+    $Pod::Tree::Node::filename    
+}
+
 
 1
 
 __END__
+
 
 =head1 NAME
 
@@ -751,6 +896,7 @@ Pod::Tree::Node - nodes in a Pod::Tree
 =head1 SYNOPSIS
 
   $node = root     Pod::Tree::Node \@paragraphs;
+  $node = code     Pod::Tree::Node $paragraph;
   $node = verbatim Pod::Tree::Node $paragraph;
   $node = command  Pod::Tree::Node $paragraph;
   $node = ordinary Pod::Tree::Node $paragraph;
@@ -758,13 +904,16 @@ Pod::Tree::Node - nodes in a Pod::Tree
   $node = sequence Pod::Tree::Node $letter, \@children;
   $node = text     Pod::Tree::Node $text;
   $node = target   Pod::Tree::Node $target;
+  $node = link     Pod::Tree::Node $node, $page, $section;
   
+  is_code     $node and ...
   is_command  $node and ...
   is_for      $node and ...
   is_item     $node and ...
   is_letter   $node and ...
   is_list     $node and ...
   is_ordinary $node and ...
+  is_pod      $node and ...
   is_root     $node and ...
   is_sequence $node and ...
   is_text     $node and ...
@@ -773,6 +922,8 @@ Pod::Tree::Node - nodes in a Pod::Tree
   
   is_c_head1  $node and ...
   is_c_head2  $node and ...
+  is_c_cut    $node and ...
+  is_c_pod    $node and ...
   is_c_over   $node and ...
   is_c_back   $node and ...
   is_c_item   $node and ...
@@ -781,12 +932,16 @@ Pod::Tree::Node - nodes in a Pod::Tree
   is_c_end    $node and ...
   
   $arg       = get_arg       $node;
+  $brackets  = get_brackets  $node;
   $children  = get_children  $node;
   $command   = get_command   $node;
+  $domain    = get_domain    $node;
   $item_type = get_item_type $node;
   $letter    = get_letter    $node;
   $list_type = get_list_type $node;
   $page      = get_page      $node;
+  $raw       = get_raw       $node;
+  $raw_kids  = get_raw_kids  $node;
   $section   = get_section   $node;
   $siblings  = get_siblings  $node;
   $target    = get_target    $node;
@@ -803,8 +958,13 @@ Pod::Tree::Node - nodes in a Pod::Tree
   $node->unescape;
   $node->consolidate;
   $node->make_lists;
-  
+
+  $node->clone;
   $node->dump;
+  
+  Pod::Tree::Node->set_filename($filename);
+  $filename = $node->get_filename;
+
 
 =head1 DESCRIPTION
 
@@ -833,7 +993,9 @@ walking the tree
 
 =back
 
+
 =head1 TREE STRUCTURE
+
 
 =head2 Root node
 
@@ -844,6 +1006,7 @@ C<is_root> returns true on this node and no other.
 
 returns a reference to an array of nodes.
 These nodes represent the POD.
+
 
 =head2 Node types
 
@@ -862,6 +1025,10 @@ I<$type> will be one of these strings:
 =item 'root'
 
 The node is the root of the tree.
+
+=item 'code'
+
+The node represents a paragraph that is not part of the POD.
 
 =item 'verbatim'
 
@@ -904,6 +1071,7 @@ or it represents the paragraphs between =begin/=end commands.
 
 Here are instructions for walking these node types.
 
+
 =head2 root node
 
 Call
@@ -911,6 +1079,17 @@ Call
 	$children = $node->get_children
 
 to get a list of nodes representing the POD.
+
+
+=head2 code nodes
+
+A code node contains the text of a paragraph that is not part of the
+POD, for example, a paragraph that follows an C<=cut> command. Call
+
+	$text = $node->get_text
+
+to recover the text of the paragraph.
+
 
 =head2 verbatim nodes
 
@@ -920,6 +1099,7 @@ Call
 	$text = $node->get_text
 
 to recover the text of the paragraph.
+
 
 =head2 ordinary nodes
 
@@ -932,6 +1112,7 @@ Call
 
 to get a list of the children.
 Iterate over this list to recover the text of the paragraph.
+
 
 =head2 command nodes
 
@@ -956,6 +1137,7 @@ Call
 to get a list of the children.
 Iterate over this list to recover the text of the paragraph.
 
+
 =head2 sequence nodes
 
 A sequence node represents a single interior sequence (a <> markup).
@@ -976,9 +1158,10 @@ to recover them.
 ZE<lt>E<gt> and EE<lt>E<gt> markups do not generate sequence nodes;
 these markups are expanded by C<Pod::Tree> when the tree is built.
 
+
 =head2 target nodes
 
-If a sequence node represents a link (an C<LE<lt>E<gt>> markup),
+If a sequence node represents a link (an C<LZ<><>> markup),
 then
 
 	is_link $node
@@ -988,16 +1171,38 @@ returns true and
 	$target = $node->get_target
 
 returns a node representing the target of the link. 
+
+C<Pod::Tree::Node> can represent targets in two I<domains>: C<POD> and C<HTTP>.
+The C<POD> domain represents the
+
+	L<page/section>
+
+markups that are described in L<perlpod>. 
+The C<HTTP> domain represents C<LZ<><>> markups that contain a URL, e.g.
+
+	L<http://foo.bar.com/page.html#fragment>
+
 Call
+
+	$domain = $target->get_domain
+
+to discover the domain of the target.
+For targets in the POD domain, call
 
 	$page    = $target->get_page;
 	$section = $target->get_section;
 
 to recover the man page and section that the link refers to.
+For targets in the HTTP domain, call
+
+	$url     = $target->get_page;
+
+to recover the URL for the link.
 
 I<$target> is used only for constructing hyper-links;
 the text to be displayed for the link is recovered by 
 walking the children of I<$node>, as for any other interior sequence.
+
 
 =head2 text nodes
 
@@ -1007,6 +1212,7 @@ Call
 	$text = $node->get_text
 
 to recover the text.
+
 
 =head2 list nodes
 
@@ -1037,6 +1243,7 @@ You can call
 	$node->get_arg;
 
 to recover the indent value following the =over.
+
 
 =head2 item nodes
 
@@ -1071,6 +1278,7 @@ Call
 
 to get a list of sibling nodes.
 
+
 =head2 for nodes
 
 for nodes represent text that is to be passed to an external formatter.
@@ -1087,11 +1295,13 @@ to obtain the text to be passed to the formatter.
 This will either be the text of an =for command, 
 or all of the text between =begin and =end commands.
 
+
 =head2 Walking the tree
 
 PODs have a recursive structure;
 therefore, any application that walks a Pod::Tree must also be recursive.
 See F<skeleton> for an example of the necessary code.
+
 
 =head1 METHODS
 
@@ -1102,6 +1312,7 @@ They are used to build trees.
 They aren't necessary to walk trees.
 
   $node = root     Pod::Tree::Node \@paragraphs;
+  $node = code     Pod::Tree::Node $paragraph;
   $node = verbatim Pod::Tree::Node $paragraph;
   $node = command  Pod::Tree::Node $paragraph;
   $node = ordinary Pod::Tree::Node $paragraph;
@@ -1109,12 +1320,28 @@ They aren't necessary to walk trees.
   $node = sequence Pod::Tree::Node $letter, \@children;
   $node = text     Pod::Tree::Node $text;
   $node = target   Pod::Tree::Node $target;
+  $node = link     Pod::Tree::Node $node, $page, $section;
+
+=over 4
+
+=item I<$link> = C<Pod::Tree::Node>->C<link>(I<$node>, I<$page>, I<$section>)
+
+Creates a new sequence node representing an LZ<><> markup.
+I<$node> becomes the sole child of the new node.
+The target of the node is constructed from I<$page> and I<$section>.
+
+This method isn't used to parse PODs.
+It is provided for applications that want to create new links in an 
+existing C<Pod::Tree> structure.
+
+=back
 
 =head2 Tests
 
 These methods return true iff I<$node> has the type indicated by the
 method name.
 
+  is_code     $node and ...
   is_command  $node and ...
   is_for      $node and ...
   is_item     $node and ...
@@ -1122,22 +1349,30 @@ method name.
   is_link     $node and ...
   is_list     $node and ...
   is_ordinary $node and ...
+  is_pod      $node and ...
   is_root     $node and ...
   is_sequence $node and ...
   is_text     $node and ...
   is_verbatim $node and ...
+
+C<is_pod> returns true for all nodes except code, C<=pod>, 
+and C<=cut> nodes. 
+
 
 These methods return true iff I<$node> is a command node,
 and the command is the one indicated by the method name.
 
   is_c_head1  $node and ...
   is_c_head2  $node and ...
+  is_c_cut    $node and ...
+  is_c_pod    $node and ...
   is_c_over   $node and ...
   is_c_back   $node and ...
   is_c_item   $node and ...
   is_c_for    $node and ...
   is_c_begin  $node and ...
   is_c_end    $node and ...
+
 
 =head2 Accessors
 
@@ -1146,6 +1381,7 @@ Most accessors are only relevant for certain types of nodes.
 
 =over 4
 
+
 =item I<$arg> = C<get_arg> I<$node>
 
 Returns the argument of I<$node>.
@@ -1153,16 +1389,48 @@ This is the number following an =over command,
 or the name of an external translator for =for, =begin, and =end commands.
 Only relevant for these four command nodes.
 
+
+=item I<$brackets> = C<get_brackets> I<$node>
+
+Only relevant for for nodes.
+
+If the node represents an =for command, 
+I<@$brackets> is a single-element list.
+The list element is the text of the =for command and its argument,
+i.e. the name of the external formatter.
+
+If the node represents a =begin/=end construct, 
+I<@$brackets> is a two-element list containing
+the text of the =begin and =end paragraphs.
+
+
 =item I<$children> = C<get_children> I<$node>
 
 Returns a reference to the list of nodes that are children of I<$node>.
 May be called on any node.
 The list may be empty.
 
+
 =item I<$command> = C<get_command> I<$node>
 
 Returns the name of a command, without the equals sign.
 Only relevant for command nodes.
+
+
+=item I<$domain> = C<get_domain> I<$node>
+
+Only relevant for target nodes.
+Returns the domain of the target.
+This will be one of the strings
+
+=over 4
+
+=item 'HTTP'
+
+=item 'POD'
+
+=back
+
 
 =item I<$item_type> = C<get_item_type> I<$node>
 
@@ -1178,31 +1446,55 @@ Returns the type of an item node. The type will be one of
 
 =back
 
+
 =item I<$letter> = C<get_letter> I<$node>
 
 Returns the letter that introduces an interior sequence.
 Only relevant for sequence nodes.
+
 
 =item I<$list_type> = C<get_list_type> I<$node>
 
 Returns the type of a list node.
 The type of a list node is the type of the first item node in the list.
 
+
 =item I<$page> = C<get_page> I<$node>
 
-Returns the man page that is the target of a link.
 Only relevant for target nodes.
+For targets in the C<POD> domain,
+returns the man page that is the target of the link.
+For targets in the C<HTTP> domain,
+returns the URL that is the target of the link.
+
+
+=item I<$raw> = C<get_raw> I<$node>
+
+Returns the original text of a paragraph.
+Currently provided for command, verbatim, and ordinary paragraphs.
+
+
+=item I<$raw_kids> = C<get_raw_kids> I<$node>
+
+Only provided for LZ<><> sequence nodes.
+Returns a reference to a list of nodes representing the entire text 
+of the LZ<><> sequence, including any part following a vertical bar (|).
+
+The original text of the LZ<><> markup can be reconstructed from this list.
+
 
 =item I<$section> = C<get_section> I<$node>
 
+Only relevant for target nodes in the C<POD> domain.
 Returns the section that is the target of a link.
-Only relevant for target nodes.
+
 
 =item I<$siblings> = C<get_siblings> I<$node>
 
 Returns the siblings of a node.
 May be called on any node.
 Only item nodes have siblings.
+
 
 =item I<$target> = C<get_target> I<$node>
 
@@ -1211,17 +1503,20 @@ Only relevant for sequence nodes that represent links
 (C<LE<lt>E<gt>> markups).
 C<is_link> returns true on these nodes.
 
+
 =item I<$text> = C<get_text> I<$node>
 
 Returns the text of a node.
 I<$text> will not contain any interior sequences.
 Only relevant for text nodes.
 
+
 =item I<$type> = C<get_type> I<$node>
 
 Returns the type of I<$node>.
 May be called on any node.
 See L</TREE STRUCTURE> for descriptions of the node types.
+
 
 =item I<$deep_text> = C<get_deep_text> I<$node>
 
@@ -1234,6 +1529,7 @@ C<get_deep_text> is provided as a convenience for applications that
 want to ignore markups in a POD paragraph.
 
 =back
+
 
 =head2 Parsing
 
@@ -1250,16 +1546,35 @@ They aren't necessary to walk the tree.
   $node->consolidate;
   $node->make_lists;
 
+
 =head2 Utility
 
 =over 4
+
+=item I<$node>->C<clone>
+
+Returns a deep copy of a node.
+Only implemented for C<text> and C<sequence> nodes.
+
 
 =item I<$node>->C<dump>
 
 Returns a string containing a pretty-printed representation of the node.
 Calling C<dump> on the root node of a tree will show the entire POD.
 
+
+=item C<Pod::Tree::Node>->C<set_filename>(I<$filename>)
+
+Sets the file name to be reported in error messages.
+
+
+=item I<$filename> = $I<node>->C<getfile_name>
+
+Returns the file name set by C<set_file_name>.
+
+
 =back
+
 
 =head1 EXAMPLES
 
@@ -1272,17 +1587,33 @@ C<Pod::Tree::Node::dump> is a simple example of code that walks a POD tree.
 
 F<skeleton> is a skeleton application that walks a POD tree.
 
+
+=head1 NOTES
+
+=over 4
+
+=item *
+
+There is no provision in L<perlpod> for C<LZ<><>> markups to contain
+URLs, but due to popular demand, this is now supported in
+C<Pod::Tree::Node>.
+
+=back
+
+
 =head1 SEE ALSO
 
 perl(1), L<C<Pod::Tree>>
+
 
 =head1 AUTHOR
 
 Steven McDougall, swmcd@world.std.com
 
+
 =head1 COPYRIGHT
 
-Copyright 1999-2000 by Steven McDougall. This module is free
+Copyright 1999-2001 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 

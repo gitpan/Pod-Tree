@@ -1,0 +1,28 @@
+=head1 NAME
+
+B<print> [-n] I<file>
+
+=head1 DESCRIPTION
+
+=Z<>head1 introduces a 1st level heading.
+B<print> sends I<file> to a printer.
+B<bold>, I<italic>, zero, B<bold, I<bold italic>, bold> normal.
+S<Non-breaking space>, C<0>.
+
+C<code>, B<bold C<code>>, F<file>, X<index>
+<, >, /, |, A, E<Agrave>
+B<<, E<gt>, /, |, A, E<Agrave>>
+I<B<<, E<gt>, /, |, A, E<Agrave>>>
+
+E<copy> E<deg> E<divide> E<frac12> E<micro> E<middot> E<not> E<reg> E<times>
+
+C<$a <=E<gt> $b>
+
+C<B<$foo-E<gt>bar>>,
+I<C<B<$foo-E<gt>bar>>>,
+
+An C<L<page/section>> markup.
+
+C<$a << $b>,
+B<C<$a E<gt>E<gt>$b>>;
+

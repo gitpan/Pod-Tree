@@ -221,10 +221,8 @@ sub Shift_Items
 
 	my($func0) = Parse_Name($item);
 	my($func1) = Parse_Name($funcs->[0]);
-	$func0 eq $func1 or last;
-
-#	my $siblings = $item->get_siblings;
-#	@$siblings and last;
+	my $sibs0  = $item->get_siblings;
+	$func0 eq $func1 or @$sibs0==0 or last;
     }
 
     @items
@@ -239,7 +237,7 @@ sub Parse_Name
 
     my $func = $words[0];
     my $file = $func;
-       $file =~ tr(A-Za-z0-9_)()cd;
+       $file =~ tr(A-Za-z0-9_-)()cd;
 
     ($func, $file)
 }

@@ -1,7 +1,5 @@
 Pod::Tree - Tree-based POD parser
 
-VERSION 1.06
-
 DESCRIPTION
 
 Modules
@@ -46,27 +44,24 @@ Modules
     make install
 
 
-Executables
-
-    Copy them to where ever you want them.
-    Fix the shebang if it isn't correct for your system.
-
-
 TODO
-See the ToDo file.
+See the ToDo and ToDo.Not files.
 Send suggestions, bugs, etc. to swmcd@world.std.com
 
 
 ACKNOWLEDGMENTS
 
 Sean M. Burke		<sburke@spinn.net>
+Rudi Farkas		<rudif@bluemail.ch>
 Jost Krieger		<Jost.Krieger@ruhr-uni-bochum.de>
+Jonas Liljegren		<jonas@jonas.rit.se>
 Johan Lindstrom		<johanl@bahnhof.se>
+Rob Napier		<rnapier@employees.org>
 Christopher Shalah	<trance@drizzle.com>
-Johan Vromans		<JVromans@Squirrel.nl> 
+Johan Vromans		<JVromans@Squirrel.nl >
 
 
 COPYRIGHT
-Copyright 1999-2000 by Steven McDougall. This module is free
+Copyright 1999-2001 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

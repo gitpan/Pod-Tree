@@ -31,7 +31,8 @@ sub _emit_verbatim
     {
 	if ($links->{$word})
 	{
-	    $stream->A(HREF => "$word.html")->text($word)->_A;
+	    my $link = $links->{$word};
+	    $stream->A(HREF => "$link.html")->text($word)->_A;
 	}
 	else
 	{
@@ -133,7 +134,7 @@ sub translate
     my $source   = "$perl_dir/$pod_dir/$page.pod";
     my $dest     = "$html_dir/$pod_dir/$page.html";
     my $html     = new Pod::Tree::HTML::PerlTop $source, $dest, %$options;
-    my $links    = $perl_top->get_links;
+    my $links    = $perl_top->_get_links;
 
     $html->set_links($links);
     $html->translate;
@@ -152,25 +153,57 @@ sub get_top_entry
 }
 
 
-sub get_links
+sub _get_links
 {
     my $perl_top = shift;
+
+    my $links = {};
+    $perl_top->_get_pod_links ($links);
+    $perl_top->_get_dist_links($links);
+
+    $links
+}
+
+sub _get_pod_links
+{
+    my($perl_top, $links) = @_;
+
     my $perl_dir = $perl_top->{perl_dir};
     my $pod_dir  = $perl_top->{pod_dir};
 
     my $dir = "$perl_dir/$pod_dir";
     opendir(DIR, $dir) or 
-	die "Pod::Tree::PerlTop::get_links: Can't opendir $dir: $!\n";
+	die "Pod::Tree::PerlTop::get_pod_links: Can't opendir $dir: $!\n";
     my @files = readdir(DIR);
     closedir(DIR);
 
     my @pods   = grep {  m( \.pod$ )x    } @files;
     my @others = grep { $_ ne 'perl.pod' } @pods;
 
-    for (@others) { s( \.pod$ )()x }
-    
-    my $links = { map { $_ => 1 } @others };
-    $links
+    for my $other (@others) 
+    { 
+	$other =~ s( \.pod$ )()x;
+	$links->{$other} = $other;
+    }
+}
+
+sub _get_dist_links
+{
+    my($perl_top, $links) = @_;
+
+    my $dir = $perl_top->{perl_dir};
+    opendir(DIR, $dir) or 
+	die "Pod::Tree::PerlTop::get_dist_links: Can't opendir $dir: $!\n";
+    my @files = readdir(DIR);
+    closedir(DIR);
+
+    my @README = grep { /^README/ } @files;
+
+    for my $file (@README) 
+    { 
+	my($base, $ext) = split m(\.), $file;
+	$links->{"perl$ext"} = "../$file";
+    }
 }
 
 1

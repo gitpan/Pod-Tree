@@ -81,6 +81,10 @@ sub scan_file
 
     $perl_dist->{index}{$file} = $entry;
     $perl_dist->{options}{link_map}->add_page($file, $file);
+
+    my($base, $ext) = split m(\.), $file;
+    $base eq 'README' and $ext and
+	$perl_dist->{options}{link_map}->add_page("perl$ext", $file);
 }
 
 

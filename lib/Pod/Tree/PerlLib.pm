@@ -17,11 +17,14 @@ sub new
 		    text      => '#000000');
     my($class, $perl_dir, $html_dir, $link_map, %options) = @_;
     my $options  = { %defaults, %options, link_map => $link_map };
+    
+    my %stop_files = map { $_ => 1 } qw(perllocal.pod);
 
     my $perl_lib = { perl_dir  =>  $perl_dir,
 		     html_dir  =>  $html_dir,
 		     lib_dir   =>  'lib',
 		     top_page  =>  'lib.html',
+		     stop_files => \%stop_files,
 		     options   =>  $options };
 
     bless $perl_lib, $class
@@ -98,9 +101,9 @@ sub _scan_file
 {
     my($perl_lib, $source) = @_;
 
-    $source =~ m(\. (?: pl | pm | pod ) $ )x or return;
-
-    my $file     = (split m(\/), $source)[-1];
+       $source   =~ m(\. (?: pl | pm | pod ) $ )x or  return;
+    my $file     = (split m(/), $source)[-1];
+       $perl_lib->{stop_files}{$file}             and return;
     my $module   = $source;
     my $find_dir = $perl_lib->{find_dir};
        $module   =~ s(^$find_dir/)();
@@ -109,15 +112,8 @@ sub _scan_file
     my $html_dir = $perl_lib->{html_dir};
     my $lib_dir  = $perl_lib->{lib_dir};
     my $dest     = "$html_dir/$lib_dir/$module.html"; 
+    my($name, $description) = $perl_lib->get_name($source);
 
-    my $tree  = new Pod::Tree;
-       $tree->load_file($source, limit => 2);
-    my $node1 = $tree->get_root->get_children->[1];
-       $node1 or return;
-
-    my $text = $node1->get_deep_text;
-    my($name, $description) = split m(\s+-\s+), $text;
-       $name =~ s(^\s+)();
        $name or return;
        $perl_lib->report2($name);
 

@@ -1,0 +1,37 @@
+Things I don't want to do
+
+
+1. Make pods2html not create an html file unless the .pm/.pod file
+actually contains POD paragraphs.
+
+Currently, Pod::HTML correctly translates a POD with no content to an
+HTML file with no content. I'd rather not special-case the code to
+suppress the HTML file. 
+
+Applications that can't tolerate empty HTML files can delete them in a
+post-processing pass (or write the PODs :)
+
+
+2. Make pods2html not create subdirs unless they actually contain
+.html files.
+
+
+3. Make pods2html to emit a frameset with the index in one frame and
+the POD in the other.
+
+This is an easy hack on pods2html for anyone who wants it.
+If people want lots of hacks like this, it might be worth adding
+hooks to pods2html to support them.
+
+
+4. Make pods2html support \ in Win32 paths
+I write Perl code that runs on Win32, and I don't generally have to
+hack the paths. I couldn't find any reference to this issue in either
+the PerlFAQ or the ActiveState docs. Before hacking pods2html, I would
+want an authoritative statement of
+- what the problem is
+- a robust way to fix it
+
+
+5. Make pods2html --base default to HTMLDir
+I think fixing relative links makes this a non-issue.

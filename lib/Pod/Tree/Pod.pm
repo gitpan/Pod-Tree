@@ -1,4 +1,4 @@
-# Copyright 2000 by Steven McDougall.  This module is free
+# Copyright 2000-2001 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
@@ -81,6 +81,7 @@ sub _emit_node
 
     for ($type)
     {
+	/code/     and $pod->_emit_code    ($node);
 	/command/  and $pod->_emit_command ($node);
 	/for/      and $pod->_emit_for     ($node);
 	/item/     and $pod->_emit_item    ($node);
@@ -93,17 +94,23 @@ sub _emit_node
 }
 
 
+sub _emit_code
+{
+    my($pod, $node) = @_;
+    my $file = $pod->{file};
+    my $text = $node->get_text;
+
+    $file->print($text);
+}
+
+
 sub _emit_command
 {
     my($pod, $node) = @_;
     my $file = $pod->{file};
+    my $raw  = $node->get_raw;
 
-    my $command  = $node->get_command;
-    $file->print("=$command ");
-
-    $pod->_emit_children($node);
-
-    $file->print("\n\n");
+    $file->print($raw);
 }
 
 
@@ -111,10 +118,11 @@ sub _emit_for
 {
     my($pod, $node) = @_;
     my $file        = $pod->{file};
-    my $text        = $node->get_text;
-    my $interpreter = $node->get_arg;
+    my $brackets    = $node->get_brackets;
 
-    $file->print("=begin $interpreter\n\n$text\n\n=end\n\n");
+    $file->print($brackets->[0]);
+    $file->print($node->get_text);
+    $file->print($brackets->[1]) if $brackets->[1];
 }
 
 
@@ -125,7 +133,6 @@ sub _emit_item
 
     $file->print("=item ");
     $pod->_emit_children($node);
-    $file->print("\n\n");
 
     $pod->_emit_siblings($node);
 }
@@ -135,13 +142,15 @@ sub _emit_list
 {
     my($pod, $node) = @_;
     my $file = $pod->{file};
-    my $arg  = $node->get_arg;
 
-    $file->print("=over $arg\n\n");
+    my $over = $node->get_raw;
+    $file->print($over);
 
     $pod->_emit_children($node);
 
-    $file->print("=back\n\n");
+    my $back = $node->get_back;
+    $back and 
+	$file->print($back->get_raw);
 }
 
 
@@ -150,7 +159,6 @@ sub _emit_ordinary
     my($pod, $node) = @_;
 
     $pod->_emit_children($node);
-    $pod->{file}->print("\n\n");
 }
 
 
@@ -187,22 +195,50 @@ sub _emit_link
 {
     my($pod, $node) = @_;
 
+    my $file = $pod->{file};
+
+    $file->print("L<");
+
+    my $children = $node->get_raw_kids;
+    for my $child (@$children)
+    {
+	$pod->_emit_node($child);
+    }
+
+    $file->print(">");
+}
+
+
+sub _emit_link_hide
+{
+    my($pod, $node) = @_;
+
     my $file     = $pod->{file};
     my $target   = $node->get_target;
     my $page     = $target->get_page;
     my $section  = $target->get_section;
     my $slash    = $section ? '/' : '';
+    my $link     = "$page$slash$section";
 
-    $pod->{link}++;
+    if ($link eq $node->get_deep_text)
+    {
+	$file->print("L<");
+	$pod->_emit_children($node);
+	$file->print(">");
+    }
+    else
+    {
+	$pod->{link}++;
 
-    $file->print("L<");
-    $pod->_emit_children($node);
+	$file->print("L<");
+	$pod->_emit_children($node);
 
-    $page    = $pod->_escape($page   );
-    $section = $pod->_escape($section);
-    $file->print("|$page$slash$section>");
+	$page    = $pod->_escape($page   );
+	$section = $pod->_escape($section);
+	$file->print("|$page$slash$section>");
 
-    $pod->{link}--;
+	$pod->{link}--;
+    }
 }
 
 
@@ -245,7 +281,7 @@ sub _emit_verbatim
     my $file = $pod->{file};
     my $text = $node->get_text;
 
-    $file->print("$text\n\n");
+    $file->print($text);
 }
 
 __END__
@@ -263,7 +299,7 @@ Pod::Tree::Pod - Convert a Pod::Tree back to a POD
   $dest =  new IO::File;
   $dest = "file.pod";
 
-  $pod  =  new Pod:::Tree::HTML $tree, $dest;
+  $pod  =  new Pod::Tree::Pod $tree, $dest;
 
   $pod->translate;
 
@@ -352,7 +388,7 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright 2000 by Steven McDougall. This module is free
+Copyright 2000-2001 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 
