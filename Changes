@@ -1,5 +1,10 @@
 Revision history for Perl extension Pod::Tree
 
+1.08	2001 May 30
+	t/pods2html.t
+	- skip test on Win32
+
+
 1.07	2001 May 29
 
 	Makefile.PL

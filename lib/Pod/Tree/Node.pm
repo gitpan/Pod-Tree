@@ -8,7 +8,7 @@ require 5.004;
 
 use strict;
 
-$Pod::Tree::Node::VERSION = '1.07';
+$Pod::Tree::Node::VERSION = '1.08';
 
 
 sub root  # ctor

@@ -151,7 +151,7 @@ sub Base
     $$actual eq $expected or Not; OK;
 
     WriteFile("$Dir/base.act"			    , $$actual);
-    WriteFile("$ENV{HOME}/public_html/pod/base.html", $$actual);
+#   WriteFile("$ENV{HOME}/public_html/pod/base.html", $$actual);
 }
 
 sub Depth
@@ -165,7 +165,7 @@ sub Depth
     $$actual eq $expected or Not; OK;
 
     WriteFile("$Dir/depth.act"			     , $$actual);
-    WriteFile("$ENV{HOME}/public_html/pod/depth.html", $$actual);
+#   WriteFile("$ENV{HOME}/public_html/pod/depth.html", $$actual);
 }
 
 sub ReadParagraphs

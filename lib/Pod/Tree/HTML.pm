@@ -12,7 +12,7 @@ use HTML::Stream;
 use IO::File;
 use Pod::Tree;
 
-$Pod::Tree::HTML::VERSION = '1.07';
+$Pod::Tree::HTML::VERSION = '1.08';
 
 
 my $LinkFormat = [ sub { my($b,$p,$f)=@_; ""              },
