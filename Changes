@@ -1,5 +1,11 @@
 Revision history for Perl extension Pod::Tree
 
+1.05	2000 Oct 12
+
+	Pod::Tree::Node
+	- Added $VERSION to quiet CPAN.pm
+
+
 1.04	2000 Oct 11
 	
 	Pod::Tree::HTML
