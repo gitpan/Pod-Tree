@@ -1,0 +1,97 @@
+#!/usr/local/bin/perl5.00401
+
+use strict;
+use Getopt::Long;
+use Pod::Tree::HTML;
+
+my %Options;
+$Options{toc} = 1;
+my $ok = GetOptions(\%Options, 
+		    "base:s",
+		    "toc!", "hr:i", 
+		    "bgcolor:s", "text:s");
+$ok or die "Bad command line options\n";
+
+umask 0022;
+
+@ARGV < 2 and die "pod2html PODfile HTMLfile\n";
+my $html = new Pod::Tree::HTML @ARGV;
+$html->set_options(%Options);
+$html->translate;
+
+__END__
+
+=head1 NAME
+
+pod2html - translate a POD to HTML
+
+=head1 SYNOPSIS
+
+C<pod2html> 
+[C<--base> I<url>]
+[C<-->[C<no>]C<toc>] [C<--hr> I<level>] 
+[C<--bgcolor> I<#rrggbb>] [C<--text> I<#rrggbb>]
+F<source> F<dest>
+
+=head1 DESCRIPTION
+
+C<pod2html> reads the POD in file F<source>,
+translates it to HTML,
+and writes it to file F<dest>.
+
+F<dest> is created world-readable.
+
+=head1 OPTIONS
+
+=over 4
+
+=item C<--base> I<url>
+
+Translate C<LE<lt>E<gt>> sequences into HTML
+links relative to I<url>.
+
+=item C<-->[C<no>]C<toc>
+
+Includes or omits the table of contents.
+Default is to include the TOC.
+
+=item C<--hr> I<level>
+
+Controls the profusion of horizontal lines in the output, as follows:
+
+    level   horizontal lines
+    0 	    none
+    1 	    between TOC and body
+    2 	    after each =head1
+    3 	    after each =head1 and =head2
+
+Default is level 1.
+
+=item C<--bgcolor> I<#rrggbb>
+
+Set the background color to I<#rrggbb>.
+Default is off-white.
+
+=item C<--text> I<#rrggbb>
+
+Set the text color to I<#rrggbb>.
+Default is black.
+
+=back
+
+=head1 REQUIRES
+
+L<C<Pod::Tree::HTML>>
+
+=head1 SEE ALSO
+
+L<C<pods2html>>, L<C<Pod::Tree::HTML>>
+
+=head1 AUTHOR
+
+Steven McDougall, <swmcd@world.std.com>
+
+=head1 COPYRIGHT
+
+Copyright 1999 by Steven McDougall.  This program is free software;
+you can redistribute it and/or modify it under the same terms as Perl.

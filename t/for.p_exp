@@ -1,0 +1,31 @@
+ROOT 
+{
+   COMMAND head1 
+   {
+      TEXT HEAD
+   }
+   FOR html
+      Line 1<br> &lt;<em>Line 2</em>&gt;
+   VERBATIM 
+	VERBATIM
+	VERBATIM
+	VERBATIM
+   ORDINARY 
+   {
+      TEXT Fee, Fie, Foe, Fum
+           Foo, Bar, Baz, Buz
+   }
+   FOR text
+      =head2 Not really a command
+      
+      	VERBATIM
+      	VERBATIM
+      	VERBATIM
+      
+      Fee, Fie, Foe, Fum
+      Foo, Bar, Baz, Buz
+   COMMAND head2 
+   {
+      TEXT Really a commmand.
+   }
+}

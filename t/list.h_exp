@@ -1,0 +1,111 @@
+<HTML>
+<HEAD>
+<TITLE>Lists</TITLE>
+</HEAD>
+<BODY BGCOLOR="#fffff8" TEXT="#000000">
+<H1><A NAME="NAME">NAME</A></H1>
+Lists
+<P>
+<H2><A NAME="Simple">Simple</A></H2>
+<UL>
+<LI>Star 1 Para 1
+<P>
+Star 1 Para 2
+<P>
+Star 1 Para 3
+<P>
+<LI>Star 2
+<P>
+
+<PRE>	Star 2 Verbatim 1
+	Star 2 Verbatim 2
+	Star 2 Verbatim 3</PRE>
+<LI>Star 3
+<P>
+</UL>
+<OL>
+<LI>Number 1
+<P>
+<LI>Number 2
+<P>
+<LI>Number 3
+<P>
+</OL>
+<DL><DT>term 1<DD>
+definition 1
+<P>
+<DT><I>term 2</I><DD>
+<CODE>definition 2</CODE>
+<P>
+<DT><I>term <B>3</B></I><DD>
+definition&nbsp;3
+<P>
+</DL>
+<H2><A NAME="Nested">Nested</A></H2>
+<UL>
+<LI>Level 1, Star 1 of 2
+<P>
+<UL>
+<LI>Level 2, Star 1 of 2
+<P>
+<LI>Level 2, Star 2 of 2
+<P>
+</UL>
+<LI><OL>
+<LI>Level 2, Number 1 of 2
+<P>
+<LI>Level 2, Number 2 of 2
+<P>
+</OL>
+</UL>
+<DL><DT>Level 1, term 1 of 2<DD>
+<UL>
+<LI>Level 2, Star 1 of 3
+<P>
+<LI>Level 2, Star 2 of 3
+<P>
+<LI>Level 2, Star 3 of 3
+<P>
+</UL>
+<DT>Level 1, term 2 of 2<DD>
+<UL>
+<LI>Level 2, Star 1 of 3
+<P>
+<OL>
+<LI>Level 3, Number 1 of 2
+<P>
+<LI>Level 3, Number 2 of 2
+<P>
+</OL>
+<LI>Level 2, Star 2 of 3
+<P>
+<LI>Level 2, Star 3 of 3
+<P>
+</UL>
+</DL>
+<H2><A NAME="Pathological">Pathological</A></H2>
+<UL>
+<LI>Over 8
+<P>
+</UL>
+<UL>
+<LI>Star 1
+<P>
+<LI>Number 2
+<P>
+<DT>Term 3<DD>
+Definition 3
+<P>
+</UL>
+Empty
+<P>
+No Items
+<P>
+<UL>
+<LI>Star 1
+<P>
+<LI>No =back
+<P>
+</UL>
+</BODY>
+</HTML>

@@ -1,0 +1,52 @@
+<HTML>
+<HEAD>
+<TITLE>Links</TITLE>
+</HEAD>
+<BODY BGCOLOR="#fffff8" TEXT="#000000">
+<H1><A NAME="NAME">NAME</A></H1>
+Links
+<P>
+<H2><A NAME="Original">Original</A></H2>
+A  <A HREF="name.html">name</A> manual page.
+<P>
+An <A HREF="name.html#ident">name/ident</A> item in manual page. 
+<P>
+A  <A HREF="name.html#sec">name/&quot;sec&quot;</A> section in other manual page.
+<P>
+A  <A HREF="#sec">&quot;sec&quot;</A>      section in this manual page (the quotes are <B>not</B> optional).
+<P>
+A  <A HREF="#sec">/&quot;sec&quot;</A>     section in this manual page (the quotes are optional).
+<P>
+<H2><A NAME="Total20Control">Total Control</A></H2>
+A  <A HREF="name.html">text</A> manual page.
+<P>
+An <A HREF="name.html#ident">text</A> item in manual page. 
+<P>
+A  <A HREF="name.html#sec">text</A> section in other manual page.
+<P>
+A  <A HREF="#sec">text</A>      section in this manual page (quotes are <B>not</B> optional).
+<P>
+A  <A HREF="#sec">text</A>     section in this manual page (quotes are optional).
+<P>
+<H2><A NAME="Targets">Targets</A></H2>
+<A NAME="target">target</A>
+<P>
+<A NAME="target20with20spaces">target with spaces</A>
+<P>
+<A NAME="target20w2Fspaces">target w/spaces</A>
+<P>
+<A NAME="italic20target"><I>italic</I> target</A>
+<P>
+<H2><A NAME="Links">Links</A></H2>
+<A HREF="#target">/target</A>
+<P>
+<A HREF="#target20with20spaces">&quot;target with spaces&quot;</A>
+<P>
+<A HREF="#target20w2Fspaces">&quot;target w/spaces&quot;</A>
+<P>
+<A HREF="#italic20target">/<I>italic</I> <B>target</B></A>
+<P>
+<A HREF="page.html#section"><I>page</I>/<I>section</I></A>
+<P>
+</BODY>
+</HTML>

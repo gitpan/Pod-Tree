@@ -1,0 +1,19 @@
+ROOT 
+{
+   ORDINARY 
+   {
+      TEXT Not in pod.
+   }
+   ORDINARY 
+   {
+      TEXT In pod.
+   }
+   COMMAND head1 
+   {
+      TEXT POD
+   }
+   ORDINARY 
+   {
+      TEXT More in pod.
+   }
+}

@@ -1,0 +1,24 @@
+<HTML>
+<HEAD>
+<TITLE>page</TITLE>
+</HEAD>
+<BODY BGCOLOR="#fffff8" TEXT="#000000">
+<UL>
+<LI><A HREF="#See20also">See also</A>
+</UL>
+<HR>
+<H1><A NAME="See20also">See also</A></H1>
+<A HREF="http://www.site.com/dir/page.html">page</A>
+<P>
+<A HREF="http://www.site.com/dir/page.html#frag">page/frag</A>
+<P>
+<A HREF="http://www.site.com/dir/page.html#frag">page/&quot;frag&quot;</A>
+<P>
+<A HREF="#frag">&quot;frag&quot;</A>
+<P>
+<A HREF="#frag">/frag</A>
+<P>
+<A HREF="http://www.site.com/dir/"></A>
+<P>
+</BODY>
+</HTML>

@@ -1,0 +1,29 @@
+=pod
+
+=head1 HEAD
+
+=for html Line 1<br> &lt;<em>Line 2</em>&gt;
+
+	VERBATIM
+	VERBATIM
+	VERBATIM
+
+Fee, Fie, Foe, Fum
+Foo, Bar, Baz, Buz
+
+=begin text
+
+=head2 Not really a command
+
+	VERBATIM
+	VERBATIM
+	VERBATIM
+
+Fee, Fie, Foe, Fum
+Foo, Bar, Baz, Buz
+
+
+
+=end text
+
+=head2 Really a commmand.

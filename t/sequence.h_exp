@@ -1,0 +1,23 @@
+<HTML>
+<HEAD>
+<TITLE>print [</TITLE>
+</HEAD>
+<BODY BGCOLOR="#fffff8" TEXT="#000000">
+<H1><A NAME="NAME">NAME</A></H1>
+<B>print</B> [-n] <I>file</I>
+<P>
+<H1><A NAME="DESCRIPTION">DESCRIPTION</A></H1>
+=head1 introduces a 1st level heading.
+<B>print</B> sends <I>file</I> to a printer.
+<B>bold</B>, <I>italic</I>, zero, <B>bold, <I>bold italic</I>, bold</B> normal.
+Non-breaking&nbsp;space, <CODE>0</CODE>.
+<P>
+<CODE>code</CODE>, <B>bold <CODE>code</CODE></B>, <I>file</I>, <A NAME="index">index</A>
+&lt;, &gt;, /, |, A, &Agrave;
+<B>&lt;, &gt;, /, |, A, &Agrave;</B>
+<I><B>&lt;, &gt;, /, |, A, &Agrave;</B></I>
+<P>
+&copy; &deg; &divide; &frac12; &micro; &middot; &not; &reg; &times;
+<P>
+</BODY>
+</HTML>
