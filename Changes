@@ -1,5 +1,43 @@
 Revision history for Perl extension Pod::Tree
 
+
+1.11	2004 Oct
+	Pod::Tree
+	- recognize blank lines per perlpodspec
+	- added support for =head3 and =head4 commands
+	- recognize \n, \r, \r\n line endings
+	- separate paragraphs on blank (/^\s*$/) lines
+
+	Pod::Tree::HTML
+	- added support for =head3 and =head4 commands
+	- expose the emit_toc and emit_body methods
+	- drop the </li> tags in the TOC.
+	  It was the easiest way to fix the nesting problem.
+	- added { empty => 1 } option
+
+	Pod::Tree::Node
+	- added support for =head3 and =head4 commands
+	- consolidate consecutive verbatim paragraphs
+
+	pods2html
+	- added --module option
+	- get depth from module name, not file path
+	- added --empty option
+
+	t/pod2html.t
+	t/pods2html.t
+	- invoke $Config{perlpath}, not 'perl'
+
+	GENERAL
+	- Set default BGCOLOR to ffffff
+
+	- Removed all the
+	    use 5.x;
+	    require 5.x
+	  statements
+
+	- reviewed all the copyright notices
+
 1.10	2003 Jan
 	Pod::Tree
 	- documentation typos

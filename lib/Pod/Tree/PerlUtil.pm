@@ -74,3 +74,8 @@ sub get_description
 
 
 1
+
+__END__
+
+Copyright (c) 2000 by Steven McDougall.  This module is free software;
+you can redistribute it and/or modify it under the same terms as Perl itself.

@@ -1,6 +1,5 @@
 #!/usr/local/bin/perl
 
-use 5.6.0;
 use strict;
 use File::Find;
 use File::Path;
@@ -9,21 +8,24 @@ use HTML::Stream;
 use IO::File;
 use Pod::Tree::HTML;
 
-my %Options = (bgcolor => '#fffff8',
+my %Options = (bgcolor => '#ffffff',
 	       text    => '#000000',
 	       hr      => 1,
 	       toc     => 1 );
 
 my $ok = GetOptions(\%Options, "base:s", 
 		               "css:s",
-		               "index:s", 
-		               "bgcolor:s", 
+		               "bgcolor:s",
+		    	       "empty",
+		               "index:s",
+		               "module",
 		               "text:s",
 		               "toc!", 
 		               "hr:i");
 $ok or die "Bad command line options\n";
 
 my %Index;
+my @Dirs;
 my($PodDir, $HTMLDir) = @ARGV;
 $HTMLDir or die "pods2html PodDir HTMLDir\n";
 
@@ -37,7 +39,8 @@ my $HTML_inode = (stat $HTMLDir)[1];
 umask 0022;
 find({ wanted   => \&Translate,
        no_chdir => 1          }, $PodDir);
-Index() if $Options{index};
+Index  () if $Options{index};
+Cleanup() unless $Options{empty};
 
 
 sub Translate
@@ -46,6 +49,14 @@ sub Translate
     -f and &Translate_POD;
 }
 
+sub MkDir
+{
+    my $dir = shift;
+
+    -d $dir and return;
+    mkdir $dir, 0755 or die "Can't mkdir $dir: $!\n";
+    push @Dirs, $dir;
+}
 
 sub Translate_Dir
 {
@@ -58,8 +69,14 @@ sub Translate_Dir
 	return;
     }
 
+    if ($Options{module} and ( m(/t$) or m(/blib$) ) )
+    {
+	$File::Find::prune = 1;
+	return;
+    }
+
     $dir =~ s/^$PodDir/$HTMLDir/o;
-    -d $dir or mkdir $dir, 0755 or die "Can't mkdir $dir: $!\n";
+    -d $dir or MkDir $dir;
     print "$File::Find::name\n";
 }
 
@@ -83,8 +100,8 @@ sub Translate_POD
     $pod =~ s( \.\w+$ )()x;
     $Index{$pod} = 1;
 
-    my $html = new Pod::Tree::HTML $source, $dest;
-    $html->set_options(%Options, depth => $depth);
+    my $html = new Pod::Tree::HTML $source, $dest, %Options;
+    $html->set_options(depth => $depth);
     $html->translate;
 }
 
@@ -98,10 +115,20 @@ sub Hidden
 
 sub Depth
 {
-    my $path  = shift;
-       $path  =~ s(^$PodDir/)();
-    my @path  = split m(/), $path;
-       @path - 1
+    my $source   = shift;
+    my $tree     = new Pod::Tree;
+       $tree->load_file($source);
+    my $children = $tree->get_root->get_children;
+    my @pod      = grep { is_pod $_ } @$children;
+    my $node1    = $pod[1];
+       $node1 or return '';
+
+    my $text     = $node1->get_deep_text;
+    my($name)    = split m(\s+-+\s+), $text;
+       $name     =~ s(^\s+)();
+
+    my @name     = split /::/, $name;
+       @name-1
 }
 
 sub Index
@@ -146,6 +173,15 @@ sub Emit_Entries
     $stream->_UL;
 }
 
+sub Cleanup
+{
+    while (@Dirs)
+    {
+	my $dir = pop @Dirs;
+	rmdir $dir;  # does nothing unless $dir is empty
+    }
+}
+
 __END__
 
 =head1 NAME
@@ -158,7 +194,9 @@ pods2html - translate a tree of PODs to HTML
 C<pods2html> 
 [C<--base> I<url>]
 [C<--css> I<url>]
+[C<--empty>]
 [C<--index> I<title>]
+[C<--module>]
 [C<-->[C<no>]C<toc>] [C<--hr> I<level>] 
 [C<--bgcolor> I<#rrggbb>] [C<--text> I<#rrggbb>]
 I<PODdir> I<HTMLdir>
@@ -188,10 +226,22 @@ Specifies a base URL for HTML links.
 Specifies a Cascanding Style Sheet for the generated HTML pages.
 
 
+=item C<--empty>
+
+Creates HTML files for empty PODs.
+If this options is not provided, then no HTML file is created for empty PODs.
+
+
 =item C<--index> I<title>
 
 Writes an index of all the HTML files to I<HTMLDir>F</index.html>.
 I<title> is used as the title of the index page.
+
+
+=item C<--module>
+
+Ignores files in directories named F<t/> and F<blib/>.
+Useful for translating PODs in a module development directory.
 
 
 =item C<-->[C<no>]C<toc>
@@ -253,5 +303,5 @@ Steven McDougall, <swmcd@world.std.com>
 
 =head1 COPYRIGHT
 
-Copyright 1999-2002 by Steven McDougall.  This program is free software;
+Copyright (c) 1999-2004 by Steven McDougall.  This program is free software;
 you can redistribute it and/or modify it under the same terms as Perl.

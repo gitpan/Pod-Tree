@@ -12,10 +12,11 @@ sub OK   { print "ok ", $N++, "\n" }
 sub Skip { print "ok ", $N++, " $Skip\n" for 1..$_[0] }
 
 
-print "1..4\n";
+print "1..6\n";
 
 my $dir = "t/pods2html.d";
 Simple($dir);
+Empty ($dir);
 Subdir($dir);
 
 if ($Config{osname} =~ /Win32/)
@@ -33,8 +34,21 @@ sub Simple
     my $d = shift;
 
     system "rm -rf $d/html_act";
-    system "perl blib/script/pods2html $d/pod $d/html_act";
+    system "$Config{perlpath} blib/script/pods2html $d/pod $d/html_act";
     RDiff("$d/html_exp", "$d/html_act") and Not; OK;
+}
+
+sub Empty
+{
+    my $d = shift;
+
+    system "rm -rf $d/html_act";
+    system "$Config{perlpath} blib/script/pods2html $d/pod $d/html_act";
+    RDiff("$d/html_exp", "$d/html_act") and Not; OK;
+
+    system "rm -rf $d/html_act";
+    system "$Config{perlpath} blib/script/pods2html --empty $d/pod $d/html_act";
+    RDiff("$d/empty_exp", "$d/html_act") and Not; OK;
 }
 
 sub Subdir
@@ -42,7 +56,7 @@ sub Subdir
     my $d = shift;
 
     system "rm -rf $d/A";
-    system "perl blib/script/pods2html $d/pod $d/A/B/C";
+    system "$Config{perlpath} blib/script/pods2html $d/pod $d/A/B/C";
     RDiff("$d/html_exp", "$d/A/B/C") and Not; OK;
 }
 
@@ -131,5 +145,10 @@ sub FileCmp
     open A, $a or die "Can't open $a: $!\n";
     open B, $b or die "Can't open $b: $!\n";
 
-    <A> ne <B>
+    my $cmp = <A> ne <B>;
+
+    close A;
+    close B;
+
+    $cmp
 }

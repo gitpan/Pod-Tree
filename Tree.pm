@@ -1,4 +1,4 @@
-# Copyright 1999-2002 by Steven McDougall.  This module is free
+# Copyright (c) 1999-2004 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
@@ -27,12 +27,12 @@ sub get_paragraph
     while ($line = $fh->getline)
     {
 	push @lines, $line;
-	$line eq "\n" and last;
+	$line =~ /\S/ or last;
     }
 
     while ($line = $fh->getline)
     {
-	$line eq "\n" or last;
+	$line =~ /\S/ and last;
 	push @lines, $line;
     }
 
@@ -51,7 +51,7 @@ use IO::File;
 use Pod::Tree::Node;
 use base qw(Exporter);
 
-$Pod::Tree::VERSION = '1.10';
+$Pod::Tree::VERSION = '1.11';
 
 
 sub new
@@ -104,7 +104,7 @@ sub load_string
 {
     my($tree, $string, %options) = @_;
 
-    my @chunks = split /(\n{2,})/, $string;
+    my @chunks = split /( \n\s*\n | \r\s*\r | \r\n\s*\r\n )/x, $string;
 
     my(@paragraphs);
     while (@chunks)
@@ -184,7 +184,7 @@ sub _add_paragraph
 
 
 my %Command = map { $_ => 1 } qw(=pod =cut
-				 =head1 =head2 
+				 =head1 =head2 =head3 =head4
 				 =over =item =back 
 				 =for =begin =end);
 
@@ -586,7 +586,15 @@ perl(1), L<C<Pod::Tree::Node>>, L<C<Pod::Tree::HTML>>
 
 =item *
 
+Paul Bettinger <paul@n8geil.de>
+
+=item *
+
 Sean M. Burke <sburke@spinn.net>
+
+=item *
+
+Brad Choate <brad@bradchoate.com>
 
 =item *
 
@@ -598,11 +606,27 @@ Paul Gibeault <pagibeault@micron.com>
 
 =item *
 
+Jay Hannah <jhannah@omnihotels.com>
+
+=item *
+
+Paul Hawkins <phawkins@datajunction.com>
+
+=item *
+
 Jost Krieger <Jost.Krieger@ruhr-uni-bochum.de>
 
 =item *
 
+Marc A. Lehmann <pcg@goof.com> 
+
+=item *
+
 Jonas Liljegren <jonas@jonas.rit.se>
+
+=item *
+
+Thomas Linden <tom@co.daemon.de>
 
 =item *
 
@@ -626,7 +650,7 @@ Christopher Shalah <trance@drizzle.com>
 
 =item *
 
-Johan Vromans <JVromans@Squirrel.nl >
+Johan Vromans <JVromans@Squirrel.nl>
 
 =back
 
@@ -638,6 +662,6 @@ Steven McDougall <swmcd@world.std.com>
 
 =head1 COPYRIGHT
 
-Copyright 1999-2003 by Steven McDougall. This module is free
+Copyright (c) 1999-2004 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

@@ -14,7 +14,7 @@ use base qw(Pod::Tree::PerlUtil);
 sub new
 {
     my %defaults = (col_width => 20,
-		    bgcolor   => '#fffff8',
+		    bgcolor   => '#ffffff',
 		    text      => '#000000');
 
     my($class, $perl_dir, $html_dir, $link_map, %options) = @_;
@@ -307,5 +307,5 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright 2000 by Steven McDougall.  This program is free software;
+Copyright (c) 2000 by Steven McDougall.  This module is free software;
 you can redistribute it and/or modify it under the same terms as Perl.

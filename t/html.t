@@ -12,7 +12,7 @@ sub OK  { print "ok ", $N++, "\n" }
 
 my $Dir = 't/html.d';
 
-my $nTests = 5 + 3 + 6 + 1 + 1;
+my $nTests = 5 + 3 + 6 + 2 + 2 + 1 + 1;
 print "1..$nTests\n";
 
 Source1  ();
@@ -24,6 +24,8 @@ Dest1    ();
 Dest2    ();
 Dest3    ();
 Translate();
+Empty	 ();
+Emit	 ();
 Base     ();
 Depth    ();
 
@@ -140,6 +142,39 @@ sub Translate
     }
 }
 
+
+sub Emit
+{
+    for my $piece (qw(body toc))
+    {
+	my $actual = new IO::String;
+	my $html   = new Pod::Tree::HTML "$Dir/paragraph.pod", $actual;
+	my $emit   = "emit_$piece";
+	$html->set_options(hr => 0);
+	$html->$emit;
+
+	my $expected = ReadFile("$Dir/$piece.exp");
+	$$actual eq $expected or Not; OK;
+
+	WriteFile("$Dir/$piece.act"			  , $$actual);
+    #   WriteFile("$ENV{HOME}/public_html/pod/$piece.html", $$actual);
+    }
+}
+
+sub Empty
+{
+    my $actual = "$Dir/empty.act";
+    unlink $actual;
+
+    my $html = new Pod::Tree::HTML "$Dir/empty.pod", $actual;
+    $html->translate;
+    -e $actual and Not; OK;
+
+    $html = new Pod::Tree::HTML "$Dir/empty.pod", $actual, empty => 1;
+    $html->translate;
+    -e $actual or Not; OK;
+}
+
 sub Base
 {
     my $actual = new IO::String;
@@ -172,7 +207,7 @@ sub ReadParagraphs
 {
     my $file   = shift;
     my $pod    = ReadFile($file);
-    my @chunks = split /(\n{2,})/, $pod;
+    my @chunks = split /( \n\s*\n | \r\s*\r | \r\n\s*\r\n )/x, $pod;
 
     my @paragraphs;
     while (@chunks)

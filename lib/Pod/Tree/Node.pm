@@ -1,10 +1,8 @@
-# Copyright 1999-2001 by Steven McDougall.  This module is free
+# Copyright (c) 1999-2004 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
 package Pod::Tree::Node;
-
-require 5.004;
 
 use strict;
 use Pod::Escapes ();
@@ -240,6 +238,18 @@ sub is_c_head2
 { 
     my $node = shift; 
     $node->{type} eq 'command' and $node->{'command'} eq 'head2' 
+}
+
+sub is_c_head3
+{ 
+    my $node = shift; 
+    $node->{type} eq 'command' and $node->{'command'} eq 'head3' 
+}
+
+sub is_c_head4
+{ 
+    my $node = shift; 
+    $node->{type} eq 'command' and $node->{'command'} eq 'head4' 
 }
 
 sub is_c_cut
@@ -569,8 +579,9 @@ sub consolidate
 
     while (@$old)
     {
-	if (is_text $new->[-1] and is_text $old->[ 0] or
-	    is_code $new->[-1] and is_code $old->[ 0] )
+	if (is_text     $new->[-1] and is_text     $old->[ 0] or
+	    is_verbatim $new->[-1] and is_verbatim $old->[ 0] or
+	    is_code     $new->[-1] and is_code     $old->[ 0] )
 	{
 	    $new->[-1]{'text'} .= $old->[0]{'text'};
 	    shift @$old;
@@ -913,6 +924,8 @@ Pod::Tree::Node - nodes in a Pod::Tree
   
   is_c_head1  $node and ...
   is_c_head2  $node and ...
+  is_c_head3  $node and ...
+  is_c_head4  $node and ...
   is_c_cut    $node and ...
   is_c_pod    $node and ...
   is_c_over   $node and ...
@@ -1360,6 +1373,8 @@ and the command is the one indicated by the method name.
 
   is_c_head1  $node and ...
   is_c_head2  $node and ...
+  is_c_head3  $node and ...
+  is_c_head4  $node and ...
   is_c_cut    $node and ...
   is_c_pod    $node and ...
   is_c_over   $node and ...
@@ -1609,6 +1624,6 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright 1999-2003 by Steven McDougall. This module is free
+Copyright (c) 1999-2004 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

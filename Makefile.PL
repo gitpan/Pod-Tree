@@ -10,7 +10,7 @@ WriteMakefile(NAME	      => 'Pod::Tree',
 	       (ABSTRACT_FROM => 'Tree.pm',
 		AUTHOR        => 'Steven McDougall (swmcd@world.std.com)') : 
 	       ()),
-	      clean           => { FILES => "t/*.?_act lib/Pod/Tree/*~" },
+	      clean           => { FILES => "t/pod2html.d/*.html t/pods2html.d/A t/pods2html.d/html_act t/pods2html.d/podR/HTML t/*/*.act lib/Pod/Tree/*~" },
 	      dist            => { COMPRESS => 'gzip --best',
 			 	   SUFFIX   => '.gz' },
 	      EXE_FILES	      => [qw(pod2html pods2html perl2html)],

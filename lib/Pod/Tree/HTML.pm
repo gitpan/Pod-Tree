@@ -1,10 +1,8 @@
-# Copyright 1999-2003 by Steven McDougall.  This module is free
+# Copyright (c) 1999-2004 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
 package Pod::Tree::HTML;
-
-require 5.004;
 
 use strict;
 use vars qw(&isa);
@@ -14,6 +12,9 @@ use Pod::Tree;
 
 $Pod::Tree::HTML::VERSION = '1.10';
 
+sub BitBucket::new      { bless {}, shift }
+sub BitBucket::AUTOLOAD { shift }
+
 
 sub new
 {
@@ -21,7 +22,7 @@ sub new
     defined $dest or die "Pod::Tree::HTML::new: not enough arguments\n";
 
     my $tree   = _resolve_source($source);
-    my $stream = _resolve_dest  ($dest  ); 
+    my $stream = _resolve_dest  ($dest  , $tree, \%options);
 
     my $options = { bgcolor     => '#ffffff',
 		    depth       => 0,
@@ -68,7 +69,11 @@ sub _resolve_source
 
 sub _resolve_dest
 {
-    my $dest   = shift;
+    my($dest, $tree, $options) = @_;
+
+    $tree->has_pod or $options->{empty} or
+	return new BitBucket;
+
     local *isa = \&UNIVERSAL::isa;
 
     isa $dest, 'HTML::Stream' and return 		  $dest;
@@ -124,8 +129,8 @@ sub translate
     $stream->_HEAD
 	   ->BODY(BGCOLOR => $bgcolor, TEXT => $text);
 
-    $html->_emit_toc;
-    $html->_emit_body;
+    $html->emit_toc;
+    $html->emit_body;
 
     $stream->nl
 	   ->_BODY
@@ -162,7 +167,7 @@ sub _make_title
 }
 
 
-sub _emit_toc
+sub emit_toc
 {
     my $html = shift;
     $html->{options}{toc} or return;
@@ -223,11 +228,11 @@ sub _emit_toc_item
 
     $stream->LI->A(HREF => "#$target");
     $html->_emit_children($node);
-    $stream->_A->_LI;
+    $stream->_A;
 }
 
 
-sub _emit_body
+sub emit_body
 {
     my $html = shift;
     my $root = $html->{root};
@@ -290,7 +295,9 @@ sub _emit_node
 
 
 my %HeadTag = ( head1 => { 'open' => 'H1', 'close' => '_H1', level => 1 },
-	        head2 => { 'open' => 'H2', 'close' => '_H2', level => 2 } );
+	        head2 => { 'open' => 'H2', 'close' => '_H2', level => 2 },
+	        head3 => { 'open' => 'H3', 'close' => '_H3', level => 3 },
+	        head4 => { 'open' => 'H4', 'close' => '_H4', level => 4 } );
 
 sub _emit_command
 {
@@ -657,12 +664,14 @@ Pod::Tree::HTML - Generate HTML from a Pod::Tree
   $dest     =   new IO::File;
   $dest     =  "file.html";
   
-  $html     =   new Pod:::Tree::HTML $source, $dest, %options;
+  $html     =   new Pod::Tree::HTML $source, $dest, %options;
   
               $html->set_options(%options);
   @values   = $html->get_options(@keys);
   
               $html->translate;
+              $html->emit_toc;
+              $html->emit_body;
   
   $fragment = $html->escape_2396 ($section);
   $url      = $html->assemble_url($base, $page, $fragment);
@@ -779,6 +788,17 @@ See L</OPTIONS> for details.
 Translates the POD to HTML.
 This method should only be called once.
 
+
+=item I<$html>->C<emit_toc>
+
+=item I<$html>->C<emit_body>
+
+Emits the table of contents and body of the HTML document.
+
+These methods are called automatically by C<translate>.
+They are exposed in the API for applications that wish to embed the 
+HTML inside a larger document.
+
 =back
 
 =head2 Utility methods
@@ -836,6 +856,12 @@ Specifies the depth of the generated HTML page in a directory tree.
 See L</LINK MAPPING> for details.
 
 
+=item C<empty> => C<1>
+
+Causes the C<translate> method to emit an HTML file, even if the POD is empty.
+If this options is not provided, then no HTML file is created for empty PODs.
+
+
 =item C<hr> => I<$level>
 
 Controls the profusion of horizontal lines in the output, as follows:
@@ -885,7 +911,7 @@ Default is to include the TOC.
 =head1 LINKS and TARGETS
 
 C<Pod::Tree::HTML> automatically generates HTML destination anchors for
-all =head1 and =head2 command paragraphs,
+all =headI<n> command paragraphs,
 and for text items in =over lists.
 The text of the paragraph becomes the C<name> attribute of the anchor.
 Markups are ignored and the text is escaped according to RFC 2396.
@@ -1078,6 +1104,6 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright 1999-2003 by Steven McDougall. This module is free
+Copyright (c) 1999-2004 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

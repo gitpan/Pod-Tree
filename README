@@ -18,6 +18,8 @@ Executables
 
     pod2html translates a POD file to an HTML file.
 
+    mod2html translates module PODs to HTML
+
     pods2html walks a directory tree, 
     translates all the PODs that it finds into HTML files,
     and puts the HTML files into a parallel directory tree.
@@ -58,20 +60,26 @@ Send suggestions, bugs, etc. to swmcd@world.std.com
 ACKNOWLEDGMENTS
 
                         <crazyinsomniac@yahoo.com>
+Paul Bettinger		<paul@n8geil.de>
 Sean M. Burke		<sburke@spinn.net>
+Brad Choate		<brad@bradchoate.com>
 Rudi Farkas		<rudif@bluemail.ch>
 Paul Gibeault		<pagibeault@micron.com>
+Jay Hannah		<jhannah@omnihotels.com>
+Paul Hawkins		<phawkins@datajunction.com>
 Jost Krieger		<Jost.Krieger@ruhr-uni-bochum.de>
+Marc A. Lehmann		<pcg@goof.com> 
 Jonas Liljegren		<jonas@jonas.rit.se>
+Thomas Linden		<tom@co.daemon.de>
 Johan Lindstrom		<johanl@bahnhof.se>
 Terry Luedtke           <terry_luedtke@nlm.nih.gov>
 Rob Napier		<rnapier@employees.org>
 Kate L Pugh             <kake@earth.li>
 Christopher Shalah	<trance@drizzle.com>
-Johan Vromans		<JVromans@Squirrel.nl >
+Johan Vromans		<JVromans@Squirrel.nl>
 
 
 COPYRIGHT
-Copyright 1999-2003 by Steven McDougall. This module is free
+Copyright (c) 1999-2004 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

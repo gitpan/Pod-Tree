@@ -1,8 +1,3 @@
-<HTML>
-<HEAD>
-<TITLE>Head 1 text</TITLE>
-</HEAD>
-<BODY BGCOLOR="#ffffff" TEXT="#000000">
 <H1><A NAME="HEAD1">HEAD1
 
 </A></H1>
@@ -41,5 +36,3 @@
 
 <P>Sub sub head
 </P>
-</BODY>
-</HTML>

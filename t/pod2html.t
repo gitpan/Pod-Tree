@@ -23,7 +23,7 @@ for my $file (@Files)
     my $exp  = "$Dir/$file.exp";
 
     unlink $html;
-    system "perl blib/script/pod2html --notoc $pod $html";
+    system "$Config{perlpath} blib/script/pod2html --notoc $pod $html";
     Cmp($html, $exp) and Not; OK;
 }
 
