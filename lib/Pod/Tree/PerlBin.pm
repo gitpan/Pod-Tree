@@ -37,7 +37,7 @@ sub scan
 
     for my $dir (@dirs)
     {
-	opendir(DIR, $dir) or die "Can't opendir $dir: $!\n";
+	opendir(DIR, $dir) or next;  # Windows apps sometimes leave non-existant dirs on $PATH
 	for my $file (readdir(DIR))
 	{
 	    my $path = "$dir/$file";
@@ -51,12 +51,12 @@ sub scan
 
 
 # A Very Special search for a Very Special executable
-sub scan_xsubpp   
+sub scan_xsubpp
 {
     my $perl_bin = shift;
 
     my @inc = grep { m(^/) } @INC;  # Don't ask.
-    File::Find::find(sub { $perl_bin->_scan_xsubpp }, @inc);
+    File::Find::find(sub { $perl_bin->_scan_xsubpp }, @inc) if @inc;
 }
 
 sub _scan_xsubpp

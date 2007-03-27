@@ -40,15 +40,17 @@ sub scan
 
 sub load_tree
 {
-    my $perl_func = shift;
-    my $perl_dir  = $perl_func->{perl_dir};
-    my $pod_dir   = $perl_func->{pod_dir};
-    my $page      = $perl_func->{page};
-    my $source    = "$perl_dir/$pod_dir/$page.pod";
+    my $perl_func  = shift;
+    my $perl_dir   = $perl_func->{perl_dir};
+    my $pod_dir    = $perl_func->{pod_dir};
+    my $page       = $perl_func->{page};
+    my $source     = "$perl_dir/$pod_dir/$page.pod";
+    my $win_source = "$perl_dir/lib/$pod_dir/$page.pod";
 
     my $tree = new Pod::Tree;
-    $tree->load_file($source) or 
-	die "Pod::Tree::PerlFunc::scan: Can't find $source\n";
+    $tree->load_file($source    ) or	# for building the doc set from a Perl distribution	
+    $tree->load_file($win_source) or	# for building the doc set from a Windows installation
+	die "Pod::Tree::PerlFunc::scan: Can't find $source or $win_source\n";
 
     my $node  = $tree->pop;
     my $funcs = $node->get_children;

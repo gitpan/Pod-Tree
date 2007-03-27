@@ -43,7 +43,6 @@ sub _emit_verbatim
     $stream->_PRE;
 }
 
-    
 
 package Pod::Tree::PerlTop;
 
@@ -58,10 +57,15 @@ sub new
     my($class, $perl_dir, $html_dir, $link_map, %options) = @_;
     my $options = { %defaults, %options, link_map => $link_map };
 
+    my $pod_src = -d "$perl_dir/pod"
+	? 'pod' 	# for building the doc set from a Perl distribution	
+	: 'lib/pod';    # for building the doc set from a Windows installation
+
     my $perl_top = { perl_dir => $perl_dir,
 		     html_dir => $html_dir,
-		     index    => 'index.html', 
-		     pod_dir  => 'pod',
+		     index    => 'index.html',
+		     pod_src  => 'pod',
+		     pod_dst  => 'pod',
 		     page     => 'perl',
 		     options  => $options };
 
@@ -129,10 +133,11 @@ sub translate
        $options->{link_map}->set_depth(1);
 
     my $html_dir = $perl_top->{html_dir};
-    my $pod_dir  = $perl_top->{pod_dir};
+    my $pod_src  = $perl_top->{pod_src};
+    my $pod_dst  = $perl_top->{pod_dst};
     my $page     = $perl_top->{page};
-    my $source   = "$perl_dir/$pod_dir/$page.pod";
-    my $dest     = "$html_dir/$pod_dir/$page.html";
+    my $source   = "$perl_dir/$pod_src/$page.pod";
+    my $dest     = "$html_dir/$pod_dst/$page.html";
     my $html     = new Pod::Tree::HTML::PerlTop $source, $dest, %$options;
     my $links    = $perl_top->_get_links;
 
@@ -145,10 +150,10 @@ sub get_top_entry
 {
     my $perl_top = shift;
 
-    my $pod_dir = $perl_top->{pod_dir};
+    my $pod_dst = $perl_top->{pod_dst};
     my $page    = $perl_top->{page};
 
-    +{ URL         => "$pod_dir/$page.html",
+    +{ URL         => "$pod_dst/$page.html",
        description => 'perl(1)' }
 }
 
@@ -169,9 +174,9 @@ sub _get_pod_links
     my($perl_top, $links) = @_;
 
     my $perl_dir = $perl_top->{perl_dir};
-    my $pod_dir  = $perl_top->{pod_dir};
+    my $pod_src  = $perl_top->{pod_src};
 
-    my $dir = "$perl_dir/$pod_dir";
+    my $dir = "$perl_dir/$pod_src";
     opendir(DIR, $dir) or 
 	die "Pod::Tree::PerlTop::get_pod_links: Can't opendir $dir: $!\n";
     my @files = readdir(DIR);
@@ -180,8 +185,8 @@ sub _get_pod_links
     my @pods   = grep {  m( \.pod$ )x    } @files;
     my @others = grep { $_ ne 'perl.pod' } @pods;
 
-    for my $other (@others) 
-    { 
+    for my $other (@others)
+    {
 	$other =~ s( \.pod$ )()x;
 	$links->{$other} = $other;
     }

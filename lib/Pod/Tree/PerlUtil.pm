@@ -54,12 +54,12 @@ sub get_name
        $node1 or return ();
 
     my $text     = $node1->get_deep_text;
-    my($name, $description) = split m(\s+-+\s+), $text, 2;
-       $name     =~ s(^\s+)();
-       $name or return ();
+       $text     =~ s(\s+)( )g;
+       $text     =~ s(^ )();
+       $text     =~ s( $)();
 
-       $description =~ s(\s+)( )g;
-       $description =~ s(\s+$)();
+    my($name, $description) = split m(\s+-+\s+), $text, 2;
+       $name or return ();
 
       ($name, $description)
 }

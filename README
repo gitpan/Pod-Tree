@@ -66,6 +66,7 @@ Brad Choate		<brad@bradchoate.com>
 Rudi Farkas		<rudif@bluemail.ch>
 Paul Gibeault		<pagibeault@micron.com>
 Jay Hannah		<jhannah@omnihotels.com>
+Martin Hans		<mah@oticon.dk>
 Paul Hawkins		<phawkins@datajunction.com>
 Jost Krieger		<Jost.Krieger@ruhr-uni-bochum.de>
 Marc A. Lehmann		<pcg@goof.com> 
@@ -76,10 +77,11 @@ Terry Luedtke           <terry_luedtke@nlm.nih.gov>
 Rob Napier		<rnapier@employees.org>
 Kate L Pugh             <kake@earth.li>
 Christopher Shalah	<trance@drizzle.com>
+Blair Sutton		<bsdz@numeninest.com>
 Johan Vromans		<JVromans@Squirrel.nl>
 
 
 COPYRIGHT
-Copyright (c) 1999-2004 by Steven McDougall. This module is free
+Copyright (c) 1999-2006 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

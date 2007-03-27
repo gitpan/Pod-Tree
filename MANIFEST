@@ -1,5 +1,6 @@
 Changes
 MANIFEST
+META.yml
 Makefile.PL
 README
 ToDo
@@ -145,3 +146,4 @@ t/tree.d/paragraph.pod
 t/tree.d/sequence.exp
 t/tree.d/sequence.pod
 t/tree.t
+META.yml                                 Module meta-data (added by MakeMaker)

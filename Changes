@@ -1,5 +1,28 @@
 Revision history for Perl extension Pod::Tree
 
+1.12	2006 Apr 22
+	Pod::Tree::PerlBin
+	- ignore non-existant directories on $PATH
+	- protect File::Find::find from empty directory list
+
+	Pod::Tree:PerlFunc
+	- find the pod/ directory under either perl/ or perl/lib/ (Win32 issue)
+
+	Pod::Tree::PerlLib
+	- increase default col_width to 30
+
+	Pod::Tree:PerlTop
+	- find the pod/ directory under either perl/ or perl/lib/ (Win32 issue)
+
+	Pod::Tree:PerlUtil
+	- clean up whitespace in module names and descriptions
+
+	pods2html
+	- recursion check compares absolute paths instead of inodes (Win32 issue)
+
+	t/pods2html.t
+	- use rmtree instead of system "rm -r" (Win32 issue)
+
 
 1.11	2004 Oct
 	Pod::Tree

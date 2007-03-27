@@ -3,37 +3,28 @@
 use strict;
 use diagnostics;
 use Config;
+use File::Path;
 
 my $Skip = "# Skipped: test skipped on this platform\n";
 my $N    = 1;
 
 sub Not  { print "not " }
 sub OK   { print "ok ", $N++, "\n" }
-sub Skip { print "ok ", $N++, " $Skip\n" for 1..$_[0] }
-
 
 print "1..6\n";
 
 my $dir = "t/pods2html.d";
-Simple($dir);
-Empty ($dir);
-Subdir($dir);
-
-if ($Config{osname} =~ /Win32/)
-{
-    Skip(2);
-}
-else
-{  
-    Recurse($dir);
-}
+Simple ($dir);
+Empty  ($dir);
+Subdir ($dir);
+Recurse($dir);
 
 
 sub Simple
 {
     my $d = shift;
 
-    system "rm -rf $d/html_act";
+    rmtree("$d/html_act");
     system "$Config{perlpath} blib/script/pods2html $d/pod $d/html_act";
     RDiff("$d/html_exp", "$d/html_act") and Not; OK;
 }
@@ -42,11 +33,11 @@ sub Empty
 {
     my $d = shift;
 
-    system "rm -rf $d/html_act";
+    rmtree("$d/html_act");
     system "$Config{perlpath} blib/script/pods2html $d/pod $d/html_act";
     RDiff("$d/html_exp", "$d/html_act") and Not; OK;
 
-    system "rm -rf $d/html_act";
+    rmtree("$d/html_act");
     system "$Config{perlpath} blib/script/pods2html --empty $d/pod $d/html_act";
     RDiff("$d/empty_exp", "$d/html_act") and Not; OK;
 }
@@ -55,7 +46,7 @@ sub Subdir
 {
     my $d = shift;
 
-    system "rm -rf $d/A";
+    rmtree("$d/A");
     system "$Config{perlpath} blib/script/pods2html $d/pod $d/A/B/C";
     RDiff("$d/html_exp", "$d/A/B/C") and Not; OK;
 }
@@ -64,7 +55,7 @@ sub Recurse
 {
     my $d = shift;
     
-    system "rm -rf $d/podR/HTML";
+    rmtree("$d/podR/HTML");
     system "blib/script/pods2html $d/podR $d/podR/HTML";
     RDiff("$d/podR_exp", "$d/podR") and Not; OK;
     system "blib/script/pods2html $d/podR $d/podR/HTML";

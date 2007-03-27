@@ -1,0 +1,12 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Pod-Tree
+version:      1.12
+version_from: Tree.pm
+installdirs:  site
+requires:
+    HTML::Stream:                  1.49
+    Pod::Escapes:                  1.02
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.30

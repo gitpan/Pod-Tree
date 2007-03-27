@@ -12,7 +12,7 @@ use base qw(Pod::Tree::PerlUtil);
 
 sub new
 {
-    my %defaults = (col_width => 25,
+    my %defaults = (col_width => 30,
 		    bgcolor   => '#ffffff',
 		    text      => '#000000');
     my($class, $perl_dir, $html_dir, $link_map, %options) = @_;
@@ -276,13 +276,12 @@ other C<Pod::Tree::Perl*> modules, but is currently unused.
 
 =item I<$perl_lib>->C<scan>(I<@INC>)
 
-Does a recursive subdirectory search through I<@INC> to 
-locate module PODs.
+Does a recursive subdirectory search through I<@INC> to locate module PODs.
 Each module that is identified is entered into I<$perl_map>.
 
 =item I<$perl_lib>->C<index>
 
-Generates a top-level index of all the modules. 
+Generates a top-level index of all the modules.
 The index is written to I<HTML_dir>C</lib.html>.
 
 =item I<$perl_lib>->C<translate>
@@ -298,15 +297,13 @@ Returns a hash reference of the form
   { URL         => $URL,
     description => $description }
 
-C<Pod::Tree::PerlTop> uses this to build a top-level index of all the 
-Perl PODs.
+C<Pod::Tree::PerlTop> uses this to build a top-level index of all the Perl PODs.
 
 =back
 
 =head1 LINKING
 
-C<Pod::Tree::PerlLib> expects the second paragraph of the POD to 
-have the form
+C<Pod::Tree::PerlLib> expects the second paragraph of the POD to have the form
 
     Foo::Bar - description
 

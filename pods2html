@@ -7,6 +7,7 @@ use Getopt::Long;
 use HTML::Stream;
 use IO::File;
 use Pod::Tree::HTML;
+use File::Spec;
 
 my %Options = (bgcolor => '#ffffff',
 	       text    => '#000000',
@@ -29,12 +30,10 @@ my @Dirs;
 my($PodDir, $HTMLDir) = @ARGV;
 $HTMLDir or die "pods2html PodDir HTMLDir\n";
 
+$PodDir  = canonpath File::Spec $PodDir;
+$HTMLDir = rel2abs   File::Spec $HTMLDir;
+
 mkpath($HTMLDir);
-
-$PodDir  =~ s( /$ )()x;
-$HTMLDir =~ s( /$ )()x;
-
-my $HTML_inode = (stat $HTMLDir)[1];
 
 umask 0022;
 find({ wanted   => \&Translate,
@@ -60,10 +59,9 @@ sub MkDir
 
 sub Translate_Dir
 {
-    my $dir   = $File::Find::name;
-    my $inode = (stat $dir)[1];     # always 0 on Win32
+    my $dir = $File::Find::name;
 
-    if ($inode and $inode == $HTML_inode)
+    if ($HTMLDir eq rel2abs File::Spec $dir)
     {
 	$File::Find::prune = 1;
 	return;
@@ -191,7 +189,7 @@ pods2html - translate a tree of PODs to HTML
 
 =head1 SYNOPSIS
 
-C<pods2html> 
+C<pods2html>
 [C<--base> I<url>]
 [C<--css> I<url>]
 [C<--empty>]
@@ -204,7 +202,7 @@ I<PODdir> I<HTMLdir>
 
 =head1 DESCRIPTION
 
-C<pod2html> finds all the F<.pod> and F<.pm> files in the 
+C<pods2html> finds all the F<.pod> and F<.pm> files in the 
 directory tree rooted at I<PODdir>.
 It translates each POD to HTML,
 and writes it to a parallel directory tree rooted at I<HTMLdir>
@@ -279,7 +277,7 @@ Default is black.
 
 =head1 REQUIRES
 
-L<C<Pod::Tree::HTML>>, 
+L<C<Pod::Tree::HTML>>,
 L<C<HTML::Stream>>
 
 
@@ -292,7 +290,7 @@ if I<HTMLdir> is a subdirectory of I<PODdir>.
 
 =head1 SEE ALSO
 
-L<C<pod2html>>, 
+L<C<pod2html>>,
 L<C<Pod::Tree::HTML>>
 
 
@@ -303,5 +301,5 @@ Steven McDougall, <swmcd@world.std.com>
 
 =head1 COPYRIGHT
 
-Copyright (c) 1999-2004 by Steven McDougall.  This program is free software;
+Copyright (c) 1999-2006 by Steven McDougall.  This program is free software;
 you can redistribute it and/or modify it under the same terms as Perl.
