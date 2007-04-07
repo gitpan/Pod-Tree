@@ -11,7 +11,7 @@ my $N    = 1;
 sub Not  { print "not " }
 sub OK   { print "ok ", $N++, "\n" }
 
-print "1..6\n";
+print "1..8\n";
 
 my $dir = "t/pods2html.d";
 Simple ($dir);
@@ -24,9 +24,21 @@ sub Simple
 {
     my $d = shift;
 
+    my $pods2html = "blib/script/pods2html";
+    my $template  = "$d/template.txt";
+    my $values    = "$d/values.pl";
+
     rmtree("$d/html_act");
-    system "$Config{perlpath} blib/script/pods2html $d/pod $d/html_act";
+    system "$Config{perlpath} $pods2html $d/pod $d/html_act";
     RDiff("$d/html_exp", "$d/html_act") and Not; OK;
+
+    rmtree("$d/html_act_t");
+    system "$Config{perlpath} $pods2html --variables $values $d/pod $d/html_act_t $template";
+    RDiff("$d/html_exp_t", "$d/html_act_t") and Not; OK;
+
+    rmtree("$d/html_act_tv");
+    system "$Config{perlpath} $pods2html --variables $values $d/pod $d/html_act_tv $template color=red";
+    RDiff("$d/html_exp_tv", "$d/html_act_tv") and Not; OK;
 }
 
 sub Empty

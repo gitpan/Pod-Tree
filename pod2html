@@ -6,21 +6,34 @@ use Pod::Tree::HTML;
 
 my %Options;
 $Options{toc} = 1;
-my $ok = GetOptions(\%Options, 
+my $ok = GetOptions(\%Options,
 		    "base:s",
 		    "css:s",
-		    "toc!", 
-		    "hr:i", 
-		    "bgcolor:s", 
-		    "text:s");
+		    "toc!",
+		    "hr:i",
+		    "bgcolor:s",
+		    "text:s",
+		    "variables:s");
 $ok or die "Bad command line options\n";
 
 umask 0022;
 
-@ARGV < 2 and die "pod2html PODfile HTMLfile\n";
-my $html = new Pod::Tree::HTML @ARGV;
+@ARGV < 2 and die "pod2html PODfile HTMLfile [templateFile]\n";
+my($source, $dest, $template, @variables) = @ARGV;
+my $html = new Pod::Tree::HTML $source, $dest;
 $html->set_options(%Options);
-$html->translate;
+
+do $Options{variables} if $Options{variables};
+
+for (@variables)
+{
+    chomp;
+    my($name, $value) = split /=/, $_, 2;
+    $name =~ s(^\$)();
+    ${$Pod::Tree::HTML::{$name}} = $value;
+}
+
+$html->translate($template);
 
 __END__
 
@@ -35,15 +48,40 @@ C<pod2html>
 [C<--css> I<url>]
 [C<-->[C<no>]C<toc>] [C<--hr> I<level>] 
 [C<--bgcolor> I<#rrggbb>] [C<--text> I<#rrggbb>]
-F<source> F<dest>
+[C<--variables> I<values.pl>]
+F<source> F<dest> [F<template>] [I<variable>=I<value> ...]]
 
 =head1 DESCRIPTION
 
 C<pod2html> reads the POD in file F<source>,
 translates it to HTML,
 and writes it to file F<dest>.
-
 F<dest> is created world-readable.
+
+If a F<template> file is provided,
+then F<template> will be filled in by the C<Text::Template> module and written to F<dest>.
+Here is a minimal template, showing all the variables that are set by C<pod2html>.
+
+  <html>
+   <head>
+    <base href="{$base}">
+    <link href="{$css}" rel="stylesheet" type="text/css">
+    <title>{$title}</title>
+   </head>
+   <body bgcolor="{$bgcolor}" text="{$text}">
+    {$toc}
+    {$body}
+   </body>
+  </html>
+
+If the C<--variables> option is provided, then the file I<values.pl> will be executed with a C<do>
+call before the template is filled in. I<values.pl> may contain arbitrary Perl code.
+The program fragments in the template are evaulted in the C<Pod::Tree::HTML> package.
+Any variables that I<values.pl> sets in this package will be available to the template.
+
+Additional scalar variables may be set on the command line with the I<variable>=I<value> syntax.
+Do not prefix I<variable> with a C<$> sigil.
+Variables set on the command line override variables set in I<values.pl>.
 
 =head1 OPTIONS
 
@@ -86,6 +124,11 @@ Default is white.
 Set the text color to I<#rrggbb>.
 Default is black.
 
+=item C<--variables> I<values.pl>
+
+Execute the file I<values.pl> with a C<do> call before filling in I<template>.
+I<values.pl> may contain arbitrary Perl code.
+
 =back
 
 =head1 REQUIRES
@@ -102,5 +145,5 @@ Steven McDougall, <swmcd@world.std.com>
 
 =head1 COPYRIGHT
 
-Copyright (c) 1999-2002 by Steven McDougall.  This program is free software;
+Copyright (c) 1999-2007 by Steven McDougall.  This program is free software;
 you can redistribute it and/or modify it under the same terms as Perl.

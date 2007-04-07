@@ -22,18 +22,29 @@ my $ok = GetOptions(\%Options, "base:s",
 		               "module",
 		               "text:s",
 		               "toc!", 
-		               "hr:i");
+		               "hr:i",
+		               "variables:s");
 $ok or die "Bad command line options\n";
 
 my %Index;
 my @Dirs;
-my($PodDir, $HTMLDir) = @ARGV;
+my($PodDir, $HTMLDir, $Template, @Variables) = @ARGV;
 $HTMLDir or die "pods2html PodDir HTMLDir\n";
 
 $PodDir  = canonpath File::Spec $PodDir;
 $HTMLDir = rel2abs   File::Spec $HTMLDir;
 
 mkpath($HTMLDir);
+
+do $Options{variables} if $Options{variables};
+
+for (@Variables)
+{
+    chomp;
+    my($name, $value) = split /=/, $_, 2;
+    $name =~ s(^\$)();
+    ${$Pod::Tree::HTML::{$name}} = $value;
+}
 
 umask 0022;
 find({ wanted   => \&Translate,
@@ -100,7 +111,7 @@ sub Translate_POD
 
     my $html = new Pod::Tree::HTML $source, $dest, %Options;
     $html->set_options(depth => $depth);
-    $html->translate;
+    $html->translate($Template);
 }
 
 sub Hidden
@@ -197,7 +208,8 @@ C<pods2html>
 [C<--module>]
 [C<-->[C<no>]C<toc>] [C<--hr> I<level>] 
 [C<--bgcolor> I<#rrggbb>] [C<--text> I<#rrggbb>]
-I<PODdir> I<HTMLdir>
+[C<--variables> I<values.pl>]
+I<PODdir> I<HTMLdir> [F<template> [I<variable>=I<value> ...]]
 
 
 =head1 DESCRIPTION
@@ -209,6 +221,29 @@ and writes it to a parallel directory tree rooted at I<HTMLdir>
 
 It makes the HTML files world-readable.
 
+If a F<template> file is provided,
+then F<template> will be filled in by the C<Text::Template> module and written to F<dest>.
+Here is a minimal template, showing all the variables that are set by C<pods2html>.
+
+  <html>
+   <head>
+    <base href="{$base}">
+    <link href="{$css}" rel="stylesheet" type="text/css">
+    <title>{$title}</title>
+   </head>
+   <body bgcolor="{$bgcolor}" text="{$text}">
+    {$toc}
+    {$body}
+   </body>
+  </html>
+
+If the C<--variables> option is provided, then the file I<values.pl> will be executed with a C<do>
+call before the template is filled in. I<values.pl> may contain arbitrary Perl code.
+The program fragments in the template are evaulted in the C<Pod::Tree::HTML> package.
+Any variables that I<values.pl> sets in this package will be available to the template.
+
+Additional scalar variables may be set on the command line with the I<variable>=I<value> syntax.
+Variables set on the command line override variables set in I<values.pl>.
 
 =head1 OPTIONS
 

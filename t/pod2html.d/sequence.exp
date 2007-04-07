@@ -19,7 +19,7 @@
 Non-breaking&nbsp;space, <CODE>0</CODE>.
 
 </P>
-<P><CODE>code</CODE>, <B>bold <CODE>code</CODE></B>, <I>file</I>, <A NAME="index">index</A>
+<P><CODE>code</CODE>, <B>bold <CODE>code</CODE></B>, <I>file</I>, <A NAME="index"></A>
 &lt;, &gt;, /, |, A, &#192;
 <B>&lt;, &gt;, /, |, A, &#192;</B>
 <I><B>&lt;, &gt;, /, |, A, &#192;</B></I>

@@ -1,5 +1,24 @@
 Revision history for Perl extension Pod::Tree
 
+1.13    2007 Apr 06
+	Pod::Tree
+	- rename the Stream package
+
+	Pod::Tree::HTML
+	- change the X<> markup to render as empty, per the perlpod manpage
+	- rename the BitBucket package
+	- add template support
+
+	Pod::Tree:PerlUtil
+	- handle malformed NAME paragraphs more gracefully
+
+	pod2html
+	- add template support
+
+	pods2html
+	- add template support
+
+
 1.12	2006 Apr 22
 	Pod::Tree::PerlBin
 	- ignore non-existant directories on $PATH

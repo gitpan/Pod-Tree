@@ -9,15 +9,17 @@ package Pod::Tree::PerlLib;
 
 use base qw(Pod::Tree::PerlUtil);
 
+use constant COLUMN_WIDTH => 30;
+
 
 sub new
 {
-    my %defaults = (col_width => 30,
+    my %defaults = (col_width => COLUMN_WIDTH,
 		    bgcolor   => '#ffffff',
 		    text      => '#000000');
     my($class, $perl_dir, $html_dir, $link_map, %options) = @_;
     my $options  = { %defaults, %options, link_map => $link_map };
-    
+
     my %stop_files = map { $_ => 1 } qw(perllocal.pod);
 
     my $perl_lib = { perl_dir  =>  $perl_dir,
@@ -246,7 +248,7 @@ Pod::Tree::PerlLib - translate module PODs to HTML
 =head1 DESCRIPTION
 
 C<Pod::Tree::PerlLib> translates module PODs to HTML.
-It does a recursive subdirectory search through a list of 
+It does a recursive subdirectory search through a list of
 directories (typically C<@INC>) to find PODs.
 
 C<Pod::Tree::PerlLib> generates a top-level index of all the PODs
@@ -326,7 +328,7 @@ Nothing.
 
 =head1 SEE ALSO
 
-L<C<Pod::Tree::HTML>>, L<C<Pod::Tree::PerlMap>>, 
+L<C<Pod::Tree::HTML>>, L<C<Pod::Tree::PerlMap>>
 
 =head1 AUTHOR
 

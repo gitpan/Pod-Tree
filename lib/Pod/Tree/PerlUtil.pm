@@ -59,7 +59,23 @@ sub get_name
        $text     =~ s( $)();
 
     my($name, $description) = split m(\s+-+\s+), $text, 2;
-       $name or return ();
+       $name or return ();  # empty!!!
+
+    if ($name =~ /\s/ and not $description)
+    {
+	$description = $name;
+	my @description = split ' ', $description;
+	if (@description > 1 and $description[0] =~ /::/)
+	{
+	    $name        = shift     @description; # guess
+	    $description = join ' ', @description;
+	}
+	else # desperation
+	{
+	    my @source = split m(/), $source;
+	    $name      = pop @source;
+	}
+    }
 
       ($name, $description)
 }

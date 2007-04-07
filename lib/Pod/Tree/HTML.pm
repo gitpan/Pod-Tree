@@ -1,40 +1,73 @@
-# Copyright (c) 1999-2004 by Steven McDougall.  This module is free
+# Copyright (c) 1999-2007 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
-package Pod::Tree::HTML;
-
 use strict;
-use vars qw(&isa);
 use HTML::Stream;
 use IO::File;
 use Pod::Tree;
+use Text::Template;
 
-$Pod::Tree::HTML::VERSION = '1.10';
 
-sub BitBucket::new      { bless {}, shift }
-sub BitBucket::AUTOLOAD { shift }
+package Pod::Tree::BitBucket;
 
+sub new      { bless {}, shift }
+sub AUTOLOAD { shift }
+
+
+package Pod::Tree::StrStream;
+
+sub new
+{
+    my $class = shift;
+    my $st    = '';
+    bless \$st, $class;
+}
+
+sub print
+{
+    my $st = shift;
+    $$st  .= join('', @_);
+}
+
+sub get
+{
+    my $st = shift;
+    my $s  = $$st;
+    $$st   = '';
+    $s
+}
+
+
+package Pod::Tree::HTML;
+
+use constant BGCOLOR => '#ffffff';
+use constant TEXT    => '#000000';
+
+use vars qw(&isa);
+
+our $VERSION = '1.10';
 
 sub new
 {
     my($class, $source, $dest, %options) = @_;
     defined $dest or die "Pod::Tree::HTML::new: not enough arguments\n";
 
-    my $tree   = _resolve_source($source);
-    my $stream = _resolve_dest  ($dest  , $tree, \%options);
+    my $tree         = _resolve_source($source);
+    my($fh, $stream) = _resolve_dest  ($dest  , $tree, \%options);
 
-    my $options = { bgcolor     => '#ffffff',
+    my $options = { bgcolor     => BGCOLOR,
 		    depth       => 0,
 		    hr          => 1,
 		    link_map    => Pod::Tree::HTML::LinkMap->new(),
-		    text        => '#000000',
+		    text        => TEXT,
 		    toc         => 1,
 		    };
 
     my $HTML = { tree        => $tree,
 		 root        => $tree->get_root,
 		 stream      => $stream,
+		 fh          => $fh,
 		 text_method => 'text',
 		 options     => $options,
 		 };
@@ -63,7 +96,7 @@ sub _resolve_source
     $tree->loaded or 
 	die "Pod::Tree::HTML::_resolve_source: Can't load POD from $source\n";
 
-    $tree    
+    $tree
 }
 
 
@@ -72,16 +105,16 @@ sub _resolve_dest
     my($dest, $tree, $options) = @_;
 
     $tree->has_pod or $options->{empty} or
-	return new BitBucket;
+	return (undef, new Pod::Tree::BitBucket);
 
     local *isa = \&UNIVERSAL::isa;
 
-    isa $dest, 'HTML::Stream' and return 		  $dest;
-    ref $dest 		      and return new HTML::Stream $dest;
+    isa $dest, 'HTML::Stream' and return (undef, 		  $dest);
+    ref $dest 		      and return ($dest, new HTML::Stream $dest);
 
     my $fh = new IO::File;
     $fh->open(">$dest") or die "Pod::Tree::HTML::new: Can't open $dest: $!\n";
-    new HTML::Stream $fh
+    ($fh, new HTML::Stream $fh)
 }
 
 
@@ -105,13 +138,28 @@ sub get_options
 }
 
 
-sub get_stream { shift->{stream} } 
+sub get_stream { shift->{stream} }
 
 
 sub translate
 {
+    my($html, $template) = @_;
+
+    if ($template)
+    {
+	$html->_template($template);
+    }
+    else
+    {
+	$html->_translate;
+    }
+}
+
+
+sub _translate
+{
     my $html    = shift;
-    my $stream 	= $html->{stream};
+    my $stream  = $html->{stream};
     my $bgcolor = $html->{options}{bgcolor};
     my $text 	= $html->{options}{text};
     my $title   = $html->_make_title;
@@ -119,11 +167,11 @@ sub translate
     my $css     = $html->{options}{css};
 
     $stream->HTML->HEAD;
-    
+
     defined $title and $stream->TITLE->text($title)->_TITLE;
     defined $base  and $stream->BASE(href => $base);
-    defined $css   and $stream->LINK(href => $css, 
-				     type => "text/css", 
+    defined $css   and $stream->LINK(href => $css,
+				     type => "text/css",
 				     rel  => "stylesheet");
 
     $stream->_HEAD
@@ -138,9 +186,37 @@ sub translate
 }
 
 
+sub _template
+{
+    my ($html, $tSource) = @_;
+
+    my 	$fh	    = $html->{fh};
+    my  $sStream    = new Pod::Tree::StrStream;
+    $html->{stream} = new HTML::Stream $sStream;
+
+    our $bgcolor = $html->{options}{bgcolor};
+    our $text 	 = $html->{options}{text};
+    our $title   = $html->_make_title;
+    our $base    = $html->{options}{base};
+    our $css     = $html->{options}{css};
+
+    $html->emit_toc;
+    our $toc = $sStream->get;
+
+    $html->emit_body;
+    our $body = $sStream->get;
+
+    my $template = new Text::Template SOURCE => $tSource or
+	die "Can't create Text::Template object: $Text::Template::ERROR\n";
+
+    $template->fill_in(OUTPUT => $fh) or
+	die $Text::Template::ERROR;
+}
+
+
 sub _make_title
 {
-    my $html   = shift;
+    my $html  = shift;
 
     my $title = $html->{options}{title};
     defined $title and return $title;
@@ -327,7 +403,7 @@ sub _emit_hr
     $html->{options}{hr} > $level or return;
     $html->{skip_first}++ or return;
     $html->{stream}->HR;
-}    
+}
 
 
 sub _emit_for
@@ -355,8 +431,8 @@ sub _emit_for_image
     my($html, $node) = @_;
 
     my $stream = $html->{stream};
-    my $link   = $node->get_text;
-       $link =~ s(\s+$)();
+    my $link    = $node->get_text;
+       $link    =~ s(\s+$)();
 
     $stream->IMG(src => $link);
 }
@@ -366,7 +442,7 @@ sub _emit_item
 {
     my($html, $node) = @_;
 
-    my $stream = $html->{stream};
+    my $stream    = $html->{stream};
     my $item_type = $node->get_item_type;
     for ($item_type)
     {
@@ -483,11 +559,11 @@ sub _emit_link
 {
     my($html, $node) = @_;
 
-    my $stream   = $html->{stream};
-    my $target   = $node->get_target;
-    my $domain   = $target->get_domain;
-    my $method   = "make_${domain}_URL";
-    my $url      = $html->$method($target);
+    my $stream = $html->{stream};
+    my $target = $node->get_target;
+    my $domain = $target->get_domain;
+    my $method = "make_${domain}_URL";
+    my $url    = $html->$method($target);
 
     $stream->A(HREF=>$url);
     $html->_emit_children($node);
@@ -540,9 +616,7 @@ sub _emit_index
 
     my $stream = $html->{stream};
     my $anchor = $html->_make_anchor($node);
-    $stream->A(NAME=>$anchor);
-    $html->_emit_children($node);
-    $stream->_A;
+    $stream->A(NAME=>$anchor)->_A;
 }
 
 
@@ -551,7 +625,7 @@ sub _emit_entity
     my($html, $node) = @_;
 
     my $stream = $html->{stream};
-    my $entity = $node->get_deep_text;
+    my $entity  = $node->get_deep_text;
     $stream->ent($entity);
 }
 
@@ -559,7 +633,7 @@ sub _emit_entity
 sub _emit_text
 {
     my($html, $node) = @_;
-    my $stream 	     = $html->{stream};
+    my $stream       = $html->{stream};
     my $text         = $node->get_text;
     my $text_method  = $html->{text_method};
 
@@ -572,7 +646,7 @@ sub _emit_verbatim
     my($html, $node) = @_;
     my $stream = $html->{stream};
     my $text   = $node->get_text;
-    $text =~ s(\n\n$)();
+       $text   =~ s(\n\n$)();
 
     $stream->PRE->text($text)->_PRE;
 }
@@ -659,7 +733,7 @@ Pod::Tree::HTML - Generate HTML from a Pod::Tree
   $source   =   new IO::File;
   $source   = \$pod;
   $source   = \@pod;
-    
+  
   $dest     =   new HTML::Stream;
   $dest     =   new IO::File;
   $dest     =  "file.html";
@@ -670,11 +744,17 @@ Pod::Tree::HTML - Generate HTML from a Pod::Tree
   @values   = $html->get_options(@keys);
   
               $html->translate;
+              $html->translate($template);
               $html->emit_toc;
               $html->emit_body;
   
   $fragment = $html->escape_2396 ($section);
   $url      = $html->assemble_url($base, $page, $fragment);
+
+
+=head1 REQUIRES
+
+C<HTML::Stream>, C<Text::Template>
 
 
 =head1 DESCRIPTION
@@ -689,6 +769,9 @@ For convenience,
 C<Pod::Tree::HTML> can read PODs from a variety of sources,
 and write HTML to a variety of destinations.
 The C<new> method resolves the I<$source> and I<$dest> arguments.
+
+C<Pod::Tree::HTML> can also use C<Text::Template> to fill in an HTML
+template file.
 
 
 =head2 Source resolution
@@ -785,8 +868,33 @@ See L</OPTIONS> for details.
 
 =item I<$html>->C<translate>
 
+=item I<$html>->C<translate>(I<$template>)
+
 Translates the POD to HTML.
 This method should only be called once.
+
+In the second form,
+I<$template> is the name of a file containing a template.
+The template will be filled in by the C<Text::Template> module.
+Here is a minimal template,
+showing example usage of all the variables that are set by C<Pod::Tree::HTML>.
+
+  <html>
+   <head>
+    <base href="{$base}">
+    <link href="{$css}" rel="stylesheet" type="text/css">
+    <title>{$title}</title>
+   </head>
+   <body bgcolor="{$bgcolor}" text="{$text}">
+    {$toc}
+    {$body}
+   </body>
+  </html>
+
+The program fragments in the template are evaulted in the C<Pod::Tree::HTML> package.
+Any variables that you set in this package will be available to your template.
+
+When a template is used, the destination must not be an C<HTML::Stream> object.
 
 
 =item I<$html>->C<emit_toc>
@@ -847,7 +955,7 @@ Default is white.
 
 =item C<css> => I<$url>
 
-Specifies a Cascanding Style Sheet for the generated HTML page.
+Specifies a Cascading Style Sheet for the generated HTML page.
 
 
 =item C<depth> => I<$depth>
@@ -884,7 +992,7 @@ See L</LINK MAPPING> for details.
 =item C<text> => I<#rrggbb>
 
 Set the text color to I<#rrggbb>.
-Default is C<#fffff>, which is black.
+Default is black.
 
 
 =item C<title> => I<title>
@@ -933,14 +1041,19 @@ Either of these would link to the heading shown above
 	L</C<Foo> Bar>
 	L</Foo Bar>
 
-To generate destination anchors in other places, 
+To generate destination anchors in other places,
 use the index (C<< XZ<><> >>) markup
 
-	We can link to X<this text>.
+	We can link to X<this text> this text.
 
 and link to it as usual
 
 	L</this text> uses the index markup.
+
+Earlier versions of this module also emitted the content of the XZ<><>
+markup as visible text. However, L<perlpod> now specifies that XZ<><>
+markups render as an empty string, so C<Pod::Tree::HTML> has been
+changed to do that.
 
 
 =head1 LINK MAPPING
@@ -1094,7 +1207,7 @@ See L</Source resolution> for details.
 
 =head1 SEE ALSO
 
-perl(1), L<C<Pod::Tree>>, L<C<Pod::Tree::Node>>
+perl(1), L<C<Pod::Tree>>, L<C<Pod::Tree::Node>>,  L<C<Text::Template>>
 
 
 =head1 AUTHOR
@@ -1104,6 +1217,6 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright (c) 1999-2004 by Steven McDougall. This module is free
+Copyright (c) 1999-2007 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

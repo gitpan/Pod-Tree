@@ -1,9 +1,9 @@
-# Copyright (c) 1999-2004 by Steven McDougall.  This module is free
+# Copyright (c) 1999-2007 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
 
-package Stream;
+package Pod::Tree::Stream;
 
 sub new
 {
@@ -51,7 +51,7 @@ use IO::File;
 use Pod::Tree::Node;
 use base qw(Exporter);
 
-$Pod::Tree::VERSION = '1.12';
+$Pod::Tree::VERSION = '1.13';
 
 
 sub new
@@ -86,7 +86,7 @@ sub load_fh
     $tree->_load_options(%options);
     my $limit = $tree->{limit};
 
-    my $stream = new Stream $fh;
+    my $stream = new Pod::Tree::Stream $fh;
     my $paragraph;
     my @paragraphs;
     while ($paragraph = $stream->get_paragraph)
@@ -379,7 +379,7 @@ Pod::Tree - Create a static syntax tree for a POD
 
 =head1 REQUIRES
 
-Perl 5.6.0, Exporter, IO::File, Pod::Tree::Node
+Pod::Escapes
 
 
 =head1 EXPORTS

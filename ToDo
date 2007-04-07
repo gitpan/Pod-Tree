@@ -1,4 +1,4 @@
-pods2html
-- make the recursion check work in Win32
+perl2html
+- template support?
 
-finish mod2html
+mod2html - program to generate a properly linked tree of module pods in HTML
