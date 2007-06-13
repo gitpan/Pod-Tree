@@ -44,8 +44,6 @@ package Pod::Tree::HTML;
 use constant BGCOLOR => '#ffffff';
 use constant TEXT    => '#000000';
 
-use vars qw(&isa);
-
 our $VERSION = '1.10';
 
 sub new
@@ -85,11 +83,11 @@ sub _resolve_source
     my $ref    = ref $source;
     local *isa = \&UNIVERSAL::isa;
 
-    isa $source, 'Pod::Tree' and return $source;
+    isa($source, 'Pod::Tree') and return $source;
 
     my $tree = new Pod::Tree;
     not $ref		    and $tree->load_file      ( $source);
-    isa $source, 'IO::File' and $tree->load_fh	      ( $source);
+    isa($source, 'IO::File') and $tree->load_fh	      ( $source);
     $ref eq 'SCALAR'        and $tree->load_string    ($$source);
     $ref eq 'ARRAY'         and $tree->load_paragraphs( $source);
 
@@ -109,7 +107,7 @@ sub _resolve_dest
 
     local *isa = \&UNIVERSAL::isa;
 
-    isa $dest, 'HTML::Stream' and return (undef, 		  $dest);
+    isa($dest, 'HTML::Stream') and return (undef, 		  $dest);
     ref $dest 		      and return ($dest, new HTML::Stream $dest);
 
     my $fh = new IO::File;
@@ -895,6 +893,10 @@ The program fragments in the template are evaulted in the C<Pod::Tree::HTML> pac
 Any variables that you set in this package will be available to your template.
 
 When a template is used, the destination must not be an C<HTML::Stream> object.
+
+C<translate> doesn't return anything.
+The first form always returns.
+The second form C<die>s if there is an error creating or filling in the template.
 
 
 =item I<$html>->C<emit_toc>

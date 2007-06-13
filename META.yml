@@ -1,12 +1,16 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Pod-Tree
-version:      1.13
-version_from: lib/Pod/Tree.pm
-installdirs:  site
-requires:
+--- #YAML:1.0
+name:                Pod-Tree
+version:             1.14
+abstract:            Create a static syntax tree for a POD
+license:             ~
+generated_by:        ExtUtils::MakeMaker version 6.32
+distribution_type:   module
+requires:     
     HTML::Stream:                  1.49
     Pod::Escapes:                  1.02
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.30
+    Text::Template:                1
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
+    version: 1.2
+author:
+    - Steven McDougall (swmcd@world.std.com)

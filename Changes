@@ -1,5 +1,14 @@
 Revision history for Perl extension Pod::Tree
 
+1.14	2007 Jun 12
+	Pod::Tree::HTML
+	- remove use vars qw(&isa); (RT 14530)
+	- document translate() error conditions (RT 12336)
+
+	Makefile.PL
+	- add Text::Template prerequisite (RT 26440)
+
+
 1.13    2007 Apr 06
 	Pod::Tree
 	- rename the Stream package
