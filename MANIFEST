@@ -18,8 +18,9 @@ lib/Pod/Tree/PerlTop.pm
 lib/Pod/Tree/PerlUtil.pm
 lib/Pod/Tree/Pod.pm
 perl2html
-pod2html
+pod.css
 pods2html
+podtree2html
 skeleton
 t/cut.d/cut.pod
 t/cut.d/file0.exp

@@ -18,7 +18,7 @@ $ok or die "Bad command line options\n";
 
 umask 0022;
 
-@ARGV < 2 and die "pod2html PODfile HTMLfile [templateFile]\n";
+@ARGV < 2 and die "podtree2html PODfile HTMLfile [templateFile]\n";
 my($source, $dest, $template, @variables) = @ARGV;
 my $html = new Pod::Tree::HTML $source, $dest;
 $html->set_options(%Options);
@@ -39,11 +39,11 @@ __END__
 
 =head1 NAME
 
-pod2html - translate a POD to HTML
+podtree2html - translate a POD to HTML
 
 =head1 SYNOPSIS
 
-C<pod2html> 
+C<podtree2html> 
 [C<--base> I<url>]
 [C<--css> I<url>]
 [C<-->[C<no>]C<toc>] [C<--hr> I<level>] 
@@ -53,14 +53,14 @@ F<source> F<dest> [F<template>] [I<variable>=I<value> ...]]
 
 =head1 DESCRIPTION
 
-C<pod2html> reads the POD in file F<source>,
+C<podtree2html> reads the POD in file F<source>,
 translates it to HTML,
 and writes it to file F<dest>.
 F<dest> is created world-readable.
 
 If a F<template> file is provided,
 then F<template> will be filled in by the C<Text::Template> module and written to F<dest>.
-Here is a minimal template, showing all the variables that are set by C<pod2html>.
+Here is a minimal template, showing all the variables that are set by C<podtree2html>.
 
   <html>
    <head>
@@ -95,7 +95,23 @@ links relative to I<url>.
 =item C<--css> I<url>
 
 Specifies a Cascanding Style Sheet for the generated HTML page.
+Here are example rules for all the different HTML elements that may appear in a POD.
 
+    a:link { background: #ff8080 }
+    body   { background: #f0f0f0 }
+    code   { background: #c0ffc0 }
+    dd     { background: #ffffe0 }
+    dl     { background: #fffff0 }
+    dt     { background: #ffffc0 }
+    h1     { background: #ffc0c0 }
+    h2     { background: #ffe0e0 }
+    hr     { background: #ff0000; height: 5px }
+    i      { background: #ffc0c0 }
+    li     { background: #e0e0e0 }
+    ol     { background: #fff0ff }
+    p      { background: #f0f0ff }
+    pre    { background: #f0fff0 }
+    ul     { background: #f0ffff }
 
 =item C<-->[C<no>]C<toc>
 

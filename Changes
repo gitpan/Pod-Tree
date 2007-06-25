@@ -1,5 +1,19 @@
 Revision history for Perl extension Pod::Tree
 
+1.15    2007 Jun 24
+	Rename pod2html -> podtree2html (RT 18742)
+
+	Pod::Tree::HTML
+	- Changed destination resolution to accept a scalar reference,
+	  or anything with a 'print' method. (RT 12335)
+
+        podtree2html, pods2html
+	- documented HTML elements for CSS rules (RT 6118)
+
+	pod.css
+	- add example style sheet
+
+
 1.14	2007 Jun 12
 	Pod::Tree::HTML
 	- remove use vars qw(&isa); (RT 14530)

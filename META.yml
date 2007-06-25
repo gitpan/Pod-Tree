@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Pod-Tree
-version:             1.14
+version:             1.15
 abstract:            Create a static syntax tree for a POD
 license:             ~
 generated_by:        ExtUtils::MakeMaker version 6.32

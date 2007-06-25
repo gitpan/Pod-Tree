@@ -31,16 +31,16 @@ sub Option
     my $pod  = "$dir/$option.pod";
     $tree->load_file($pod) or die "Can't load $pod: $!\n";
 
-    my $actual = new IO::String;
-    my $html = new Pod::Tree::HTML $tree, $actual;
+    my $actual = '';
+    my $html = new Pod::Tree::HTML $tree, \$actual;
     $html->set_options($option => $value);
     $html->translate;
 
     my $expected = ReadFile("$dir/$option$suffix.exp");
-    $$actual eq $expected or Not; OK;
+    $actual eq $expected or Not; OK;
 
-    WriteFile("$dir/$option$suffix.act"	              	      , $$actual);
-#   WriteFile("$ENV{HOME}/public_html/pod/$option$suffix.html", $$actual);
+    WriteFile("$dir/$option$suffix.act"	              	      , $actual);
+#   WriteFile("$ENV{HOME}/public_html/pod/$option$suffix.html", $actual);
 }
 
 
@@ -64,19 +64,3 @@ sub WriteFile
     close FILE;
     chmod 0644, $file or die "Can't chmod $file: $!\n";
 }
-
-
-package IO::String;
-
-sub new 
-{
-    my $self = '';
-    bless \$self, shift;
-}
-
-sub print 
-{
-    my $self = shift;
-    $$self .= join('', @_);
-}
-    

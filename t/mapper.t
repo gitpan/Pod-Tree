@@ -8,7 +8,7 @@ use Pod::Tree::HTML;
 
 my $N = 1;
 sub Not { print "not " }
-sub OK  { print "ok ", $N++, "\n" }
+sub OK  { print "ok ", $N++, ' ', (caller 1)[3], "\n" }
 
 my $Dir = 't/mapper.d';
 
@@ -30,17 +30,17 @@ sub Translate
 
     for my $file (qw(cut paragraph list sequence for link))
     {
-	my $actual = new IO::String;
-	my $html   = new Pod::Tree::HTML "$Dir/$file.pod", $actual;
+	my $actual = '';
+	my $html   = new Pod::Tree::HTML "$Dir/$file.pod", \$actual;
 	$html->set_options(toc      => 0);
 	$html->set_options(link_map => $mapper) if $mapper;
 	$html->translate;
 
 	my $expected = ReadFile("$Dir/$file.exp");
-	$$actual eq $expected or Not; OK;
+	$actual eq $expected or Not; OK;
 
-	WriteFile("$Dir/$file.act"			 , $$actual);
-    #   WriteFile("$ENV{HOME}/public_html/pod/$file.html", $$actual);
+	WriteFile("$Dir/$file.act"			 , $actual);
+    #   WriteFile("$ENV{HOME}/public_html/pod/$file.html", $actual);
     }
 }
 
@@ -103,20 +103,3 @@ sub map
 
     ('../' x $depth, $page, $section)
 }
-
-
-
-package IO::String;
-
-sub new 
-{
-    my $self = '';
-    bless \$self, shift;
-}
-
-sub print 
-{
-    my $self = shift;
-    $$self .= join('', @_);
-}
-    

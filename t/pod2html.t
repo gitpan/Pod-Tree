@@ -23,7 +23,7 @@ for my $file (@Files)
     my $exp  = "$Dir/$file.exp";
 
     unlink $html;
-    system "$Config{perlpath} blib/script/pod2html --notoc $pod $html";
+    system "$Config{perlpath} blib/script/podtree2html --notoc $pod $html";
     Cmp($html, $exp) and Not; OK;
 }
 
@@ -36,7 +36,7 @@ for my $file (@Files)
     my $values   = "$Dir/values.pl";
 
     unlink $html;
-    system "$Config{perlpath} blib/script/pod2html --notoc -variables $values $pod $html $template";
+    system "$Config{perlpath} blib/script/podtree2html --notoc -variables $values $pod $html $template";
     Cmp($html, $exp) and Not; OK;
 }
 
@@ -49,7 +49,7 @@ for my $file (@Files)
     my $values   = "$Dir/values.pl";
 
     unlink $html;
-    system "$Config{perlpath} blib/script/pod2html --notoc -variables $values $pod $html $template color=red";
+    system "$Config{perlpath} blib/script/podtree2html --notoc -variables $values $pod $html $template color=red";
     Cmp($html, $exp) and Not; OK;
 }
 

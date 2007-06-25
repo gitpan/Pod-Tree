@@ -257,6 +257,23 @@ Specifies a base URL for HTML links.
 =item C<--css> I<url>
 
 Specifies a Cascanding Style Sheet for the generated HTML pages.
+Here are example rules for all the different HTML elements that may appear in a POD.
+
+    a:link { background: #ff8080 }
+    body   { background: #f0f0f0 }
+    code   { background: #c0ffc0 }
+    dd     { background: #ffffe0 }
+    dl     { background: #fffff0 }
+    dt     { background: #ffffc0 }
+    h1     { background: #ffc0c0 }
+    h2     { background: #ffe0e0 }
+    hr     { background: #ff0000; height: 5px }
+    i      { background: #ffc0c0 }
+    li     { background: #e0e0e0 }
+    ol     { background: #fff0ff }
+    p      { background: #f0f0ff }
+    pre    { background: #f0fff0 }
+    ul     { background: #f0ffff }
 
 
 =item C<--empty>
@@ -336,5 +353,5 @@ Steven McDougall, <swmcd@world.std.com>
 
 =head1 COPYRIGHT
 
-Copyright (c) 1999-2006 by Steven McDougall.  This program is free software;
+Copyright (c) 1999-2007 by Steven McDougall.  This program is free software;
 you can redistribute it and/or modify it under the same terms as Perl.

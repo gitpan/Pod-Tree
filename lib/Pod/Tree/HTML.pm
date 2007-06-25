@@ -19,9 +19,17 @@ package Pod::Tree::StrStream;
 
 sub new
 {
-    my $class = shift;
-    my $st    = '';
-    bless \$st, $class;
+    my($class, $ref) = @_;
+
+    if ($ref)
+    {
+	return bless $ref, $class
+    }
+    else
+    {
+	my $st = '';
+	return bless \$st, $class;
+    }
 }
 
 sub print
@@ -86,10 +94,10 @@ sub _resolve_source
     isa($source, 'Pod::Tree') and return $source;
 
     my $tree = new Pod::Tree;
-    not $ref		    and $tree->load_file      ( $source);
-    isa($source, 'IO::File') and $tree->load_fh	      ( $source);
-    $ref eq 'SCALAR'        and $tree->load_string    ($$source);
-    $ref eq 'ARRAY'         and $tree->load_paragraphs( $source);
+    not $ref		     and $tree->load_file      ( $source);
+    isa($source, 'IO::File') and $tree->load_fh	       ( $source);
+    $ref eq 'SCALAR'         and $tree->load_string    ($$source);
+    $ref eq 'ARRAY'          and $tree->load_paragraphs( $source);
 
     $tree->loaded or 
 	die "Pod::Tree::HTML::_resolve_source: Can't load POD from $source\n";
@@ -106,13 +114,20 @@ sub _resolve_dest
 	return (undef, new Pod::Tree::BitBucket);
 
     local *isa = \&UNIVERSAL::isa;
+    local *can = \&UNIVERSAL::can;
 
-    isa($dest, 'HTML::Stream') and return (undef, 		  $dest);
-    ref $dest 		      and return ($dest, new HTML::Stream $dest);
+    isa($dest, 'HTML::Stream') and return (undef, 		   $dest);
+    isa($dest, 'IO::File'    ) and return ($dest, new HTML::Stream $dest);
+    can($dest, 'print'       ) and return ($dest, new HTML::Stream $dest);
 
-    my $fh = new IO::File;
-    $fh->open(">$dest") or die "Pod::Tree::HTML::new: Can't open $dest: $!\n";
-    ($fh, new HTML::Stream $fh)
+    if (ref $dest eq 'SCALAR' or ref $dest eq '' and $dest)
+    {
+	my $fh = new IO::File;
+	$fh->open($dest, '>') or die "Pod::Tree::HTML::new: Can't open $dest: $!\n";
+	return ($fh, new HTML::Stream $fh);
+    }
+
+    die "Pod::Tree::HTML::_resolve_dest: Can't write HTML to $dest\n";
 }
 
 
@@ -810,11 +825,11 @@ then the paragraphs of the POD are taken from that array.
 
 If I<$source> isn't any of these things,
 C<new> C<die>s.
-
+ 
 
 =head2 Destination resolution
 
-C<Pod::Tree::HTML> can write HTML to any of 3 destinations.
+C<Pod::Tree::HTML> can write HTML to any of 5 destinations.
 C<new> resolves I<$dest> by checking these things,
 in order:
 
@@ -823,20 +838,32 @@ in order:
 =item 1
 
 If I<$dest> C<isa> C<HTML::Stream>,
-then it writes to that stream.
+then C<Pod::Tree::HTML> writes HTML to that stream.
 
 =item 2
 
-If I<$dest> is a reference,
-then it is taken to be an C<IO::File> object
-that is already open on the file where the HTML will be written.
+If I<$dest> C<isa> C<IO::File>,
+then C<Pod::Tree::HTML> writes HTML to that file.
 
 =item 3
 
-If I<$dest> is not a reference,
-then it is taken to be the name of the file where the HTML will be written.
+If I<$dest> has a C<print> method,
+then C<Pod::Tree::HTML> passes HTML to that method.
+
+=item 4
+
+If I<$dest> is a SCALAR reference,
+then C<Pod::Tree::HTML> writes HTML to that scalar.
+
+=item 5
+
+If I<$dest> is a string,
+then C<Pod::Tree::HTML> writes HTML to the file with that name.
 
 =back
+
+If I<$dest> isn't any of these things,
+C<new> C<die>s.
 
 
 =head1 METHODS
@@ -969,7 +996,7 @@ See L</LINK MAPPING> for details.
 =item C<empty> => C<1>
 
 Causes the C<translate> method to emit an HTML file, even if the POD is empty.
-If this options is not provided, then no HTML file is created for empty PODs.
+If this option is not provided, then no HTML file is created for empty PODs.
 
 
 =item C<hr> => I<$level>
@@ -1199,6 +1226,11 @@ older versions of C<Pod::Tree::HTML>
 
 (F) C<new> couldn't resolve the I<$source> argument.
 See L</Source resolution> for details.
+
+=item C<Pod::Tree::HTML::new: Can't write HTML to $dest>
+
+(F) C<new> couldn't resolve the I<$dest> argument.
+See L</Destination resolution> for details.
 
 =item C<Pod::Tree::HTML::new: Can't open $dest: $!>
 
