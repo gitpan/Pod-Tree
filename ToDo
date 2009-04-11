@@ -1,6 +1,3 @@
-Pod::Tree::HTML
-- accept any $dest that support a print() method
-
 t/template.t
 add tests for the new destinations
 

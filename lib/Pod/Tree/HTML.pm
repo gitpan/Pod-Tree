@@ -5,6 +5,7 @@
 use strict;
 use HTML::Stream;
 use IO::File;
+use IO::String;
 use Pod::Tree;
 use Text::Template;
 
@@ -120,7 +121,13 @@ sub _resolve_dest
     isa($dest, 'IO::File'    ) and return ($dest, new HTML::Stream $dest);
     can($dest, 'print'       ) and return ($dest, new HTML::Stream $dest);
 
-    if (ref $dest eq 'SCALAR' or ref $dest eq '' and $dest)
+    if (ref $dest eq 'SCALAR')
+    {
+	my $fh = new IO::String $$dest;
+	return ($fh, new HTML::Stream $fh);
+    }
+
+    if (ref $dest eq '' and $dest)
     {
 	my $fh = new IO::File;
 	$fh->open($dest, '>') or die "Pod::Tree::HTML::new: Can't open $dest: $!\n";
@@ -1251,6 +1258,6 @@ Steven McDougall, swmcd@world.std.com
 
 =head1 COPYRIGHT
 
-Copyright (c) 1999-2007 by Steven McDougall. This module is free
+Copyright (c) 1999-2009 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

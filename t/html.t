@@ -89,15 +89,16 @@ sub Source
 
 sub Dest1
 {
-    my $actual = new IO::String;
-    my $stream = new HTML::Stream $actual;
+    my $actual;
+    my $string = new IO::String $actual;
+    my $stream = new HTML::Stream $string;
     my $html   = new Pod::Tree::HTML "$Dir/paragraph.pod", $stream;
 
        $html->set_options(toc => 0);
        $html->translate;
 
     my $expected = ReadFile("$Dir/paragraph.exp");
-       $$actual eq $expected or Not; OK;
+       $actual eq $expected or Not; OK;
 }
 
 sub Dest2
@@ -116,13 +117,13 @@ sub Dest2
 
 sub Dest3
 {
-    my $string = new IO::String;
+    my $actual;
+    my $string = new IO::String $actual;
     my $html   = new Pod::Tree::HTML "$Dir/paragraph.pod", $string;
        $html->set_options(toc => 0);
        $html->translate;
 
     my $expected = ReadFile("$Dir/paragraph.exp");
-    my $actual   = $$string;
        $actual eq $expected or Not; OK;
 }
 
@@ -265,19 +266,3 @@ sub WriteFile
     close FILE;
     chmod 0644, $file or die "Can't chmod $file: $!\n";
 }
-
-
-package IO::String;
-
-sub new 
-{
-    my $self = '';
-    bless \$self, shift;
-}
-
-sub print 
-{
-    my $self = shift;
-    $$self .= join('', @_);
-}
-    

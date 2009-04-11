@@ -1,4 +1,4 @@
-# Copyright (c) 1999-2007 by Steven McDougall.  This module is free
+# Copyright (c) 1999-2009 by Steven McDougall.  This module is free
 # software; you can redistribute it and/or modify it under the same
 # terms as Perl itself.
 
@@ -51,7 +51,7 @@ use IO::File;
 use Pod::Tree::Node;
 use base qw(Exporter);
 
-$Pod::Tree::VERSION = '1.15';
+$Pod::Tree::VERSION = '1.16';
 
 
 sub new
@@ -586,6 +586,10 @@ perl(1), L<C<Pod::Tree::Node>>, L<C<Pod::Tree::HTML>>
 
 =item *
 
+<joenio@cpan.org>
+
+=item *
+
 Paul Bettinger <paul@n8geil.de>
 
 =item *
@@ -595,6 +599,10 @@ Sean M. Burke <sburke@spinn.net>
 =item *
 
 Brad Choate <brad@bradchoate.com>
+
+=item *
+
+Havard Eidnes <he@NetBSD.org>
 
 =item *
 
@@ -662,6 +670,6 @@ Steven McDougall <swmcd@world.std.com>
 
 =head1 COPYRIGHT
 
-Copyright (c) 1999-2004 by Steven McDougall. This module is free
+Copyright (c) 1999-2009 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

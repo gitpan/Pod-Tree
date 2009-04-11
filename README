@@ -27,15 +27,15 @@ Executables
 
 PREREQUISITES
 Perl 5
+File::Find
 HTML::Stream
 IO::File
+IO::String
 Pod::Escapes
 Text::Template
 
 
 HOW TO BUILD AND INSTALL
-
-Modules
 
     perl Makefile.PL
     make
@@ -62,9 +62,11 @@ or open a ticket at
 ACKNOWLEDGMENTS
 
                         <crazyinsomniac@yahoo.com>
+			<joenio@cpan.org>
 Paul Bettinger		<paul@n8geil.de>
 Sean M. Burke		<sburke@spinn.net>
 Brad Choate		<brad@bradchoate.com>
+Havard Eidnes		<he@NetBSD.org>
 Rudi Farkas		<rudif@bluemail.ch>
 Paul Gibeault		<pagibeault@micron.com>
 Jay Hannah		<jhannah@omnihotels.com>
@@ -84,6 +86,6 @@ Johan Vromans		<JVromans@Squirrel.nl>
 
 
 COPYRIGHT
-Copyright (c) 1999-2007 by Steven McDougall. This module is free
+Copyright (c) 1999-2009 by Steven McDougall. This module is free
 software; you can redistribute it and/or modify it under the same
 terms as Perl itself.

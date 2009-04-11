@@ -17,6 +17,7 @@ lib/Pod/Tree/PerlPod.pm
 lib/Pod/Tree/PerlTop.pm
 lib/Pod/Tree/PerlUtil.pm
 lib/Pod/Tree/Pod.pm
+mod2html
 perl2html
 pod.css
 pods2html

@@ -1,5 +1,16 @@
 Revision history for Perl extension Pod::Tree
 
+1.16    2009 Apr 10
+	Pod::Tree::HTML
+	- fix to work with IO::File 1.13 (RT 34755, 38307)
+
+	mod2html
+	- added to distribution
+
+	Makefile.PL
+	- added all required modules to PREREQ_PM
+
+
 1.15    2007 Jun 24
 	Rename pod2html -> podtree2html (RT 18742)
 
