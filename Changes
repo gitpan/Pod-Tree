@@ -1,5 +1,9 @@
 Revision history for Perl extension Pod::Tree
 
+1.17	2010 Jun 21
+	pods2html
+	- quote paths in REs
+
 1.16    2009 Apr 10
 	Pod::Tree::HTML
 	- fix to work with IO::File 1.13 (RT 34755, 38307)

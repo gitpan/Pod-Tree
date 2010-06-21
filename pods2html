@@ -84,7 +84,7 @@ sub Translate_Dir
 	return;
     }
 
-    $dir =~ s/^$PodDir/$HTMLDir/o;
+    $dir =~ s/^\Q$PodDir/$HTMLDir/o;
     -d $dir or MkDir $dir;
     print "$File::Find::name\n";
 }
@@ -99,7 +99,7 @@ sub Translate_POD
     print "$source\n";
 
     my $dest = $source;
-    $dest =~ s/^$PodDir/$HTMLDir/;
+    $dest =~ s/^\Q$PodDir/$HTMLDir/o;
     $dest =~ s( \.\w+$ )(.html)x;
 
     my $depth = Depth($source);
@@ -279,7 +279,7 @@ Here are example rules for all the different HTML elements that may appear in a 
 =item C<--empty>
 
 Creates HTML files for empty PODs.
-If this options is not provided, then no HTML file is created for empty PODs.
+If this option is not provided, then no HTML file is created for empty PODs.
 
 
 =item C<--index> I<title>
@@ -353,5 +353,5 @@ Steven McDougall, <swmcd@world.std.com>
 
 =head1 COPYRIGHT
 
-Copyright (c) 1999-2007 by Steven McDougall.  This program is free software;
+Copyright (c) 1999-2010 by Steven McDougall.  This program is free software;
 you can redistribute it and/or modify it under the same terms as Perl.

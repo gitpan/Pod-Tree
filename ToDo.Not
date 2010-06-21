@@ -8,27 +8,18 @@ If people want lots of hacks like this, it might be worth adding
 hooks to pods2html to support them.
 
 
-2. Make pods2html support \ in Win32 paths
-I write Perl code that runs on Win32, and I don't generally have to
-hack the paths. I couldn't find any reference to this issue in either
-the PerlFAQ or the ActiveState docs. Before hacking pods2html, I would
-want an authoritative statement of
-- what the problem is
-- a robust way to fix it
-
-
-3. Remove the ($] >= 5.005 ? key from Makefile.PL
+2. Remove the ($] >= 5.005 ? key from Makefile.PL
 I had a complaint that this syntax breaks on Cygwin, but I can no
 longer contact the person who reported it to confirm the problem.
 
 
-4. Generate an index and TOC in the sytle of Marek::Pod::Html
+3. Generate an index and TOC in the sytle of Marek::Pod::Html
 This is
 - beyond the scope of POD
 - beyond the scope of Pod::Tree
 
 
-5. XHTML support
+4. XHTML support
 I've had a request for XHTML compliance.
 I thought this would be easy
 - downcase all the tags
@@ -39,17 +30,18 @@ this means either hacking or replacing that module. I don't want to do
 the first, and the second is a big job.
 
 
-6. Solaris problem
+5. Solaris problem
 A test failure on Solaris that I don't understand and probably can't
 reproduce. This may be another example of the $Config{perlpath} vs.
 perl problem.
   
 
-7. Complaint of -w warnings on empty paragraphs
+6. Complaint of -w warnings on empty paragraphs
 I can't reproduce this, and I haven't been able to contact the
 reporter. 
 
-8.HTML classes for CSS
+
+7. HTML classes for CSS
 I have a request to specify HTML classes to support CSS. It's not hard
 to do, but it bulks up both the code and the generated HTML, and it
 isn't clear that it gains anything. Style sheets can use HTML element

@@ -67,10 +67,12 @@ sub Recurse
 {
     my $d = shift;
     
+    my $pods2html = "blib/script/pods2html";
+
     rmtree("$d/podR/HTML");
-    system "blib/script/pods2html $d/podR $d/podR/HTML";
+    system "$Config{perlpath} blib/script/pods2html $d/podR $d/podR/HTML";
     RDiff("$d/podR_exp", "$d/podR") and Not; OK;
-    system "blib/script/pods2html $d/podR $d/podR/HTML";
+    system "$Config{perlpath} blib/script/pods2html $d/podR $d/podR/HTML";
     RDiff("$d/podR_exp", "$d/podR") and Not; OK;
 }
 
